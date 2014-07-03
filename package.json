@@ -1,0 +1,19 @@
+{
+  "name": "whozurdata",
+  "version": "0.0.1",
+  "description": "data browser",
+  "main": "index.js",
+  "scripts": {
+    "prestart": "openssl req -x509 -newkey rsa:1024 -keyout key.pem -out cert.pem -passin pass:keyPass -passout pass:test -days 1 -batch"
+  },
+  "author": "Bill Wunder",
+  "license": "MIT",
+  "dependencies": {
+    "edge": "~0.8.0",
+    "edge-sql": "~0.1.1",
+    "mongod": "~1.2.0",
+    "node-cassandra-cql": "~0.5.0",
+    "sqlite3": "~2.2.3",
+    "serve-favicon": "~2.0.1"
+  }
+}
