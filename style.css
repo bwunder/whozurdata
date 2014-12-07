@@ -1,0 +1,71 @@
+
+  *                 {font-family: sans-serif; 
+                     color: slateblue;}
+  a                 {text-decoration: none;}                 
+  a:hover           {text-decoration: underline;}                 
+  label             {font-variant: small-caps; 
+                     font-weight: bold; 
+                     font-size: small;
+                     color: black;
+                     background-color: paleturquoise;}
+  textarea          {color: darkslateblue; 
+                     background-color: palegoldenrod;
+                     overflow: hidden;}
+  textarea:focus    {background-color: palegoldenrod;
+                     overflow: none;}
+  form              {display: inline-block; margin: 2%;} 
+  h4                {display: inline-block; margin: 2%;} 
+  h6                {display: inline-block; margin: 2%;}   
+  .dropdown         {display: run-in; 
+                     overflow: hidden;}
+  div#mall          {background-color: turquoise;  
+                     width: 100%; 
+                     max-width: 40em;
+                     display: -webkit-flex;
+                     display: -ms-flexbox;
+                     display: flex;
+                     -webkit-justify-content: center;
+                     -ms-flex-pack: center;
+                     justify-content: center;}
+  #logo             {display: -webkit-flex;
+                     display: -ms-flexbox;
+                     display: flex;
+                     -webkit-justify-content: center;
+                     -ms-flex-pack: center;
+                     justify-content: center; 
+                     white-space: nowrap;}   
+  #store            {}                      
+  #store div         {border: thin darkturquoise solid;}
+  .store            {overflow-x: auto;
+                     white-space: nowrap;}  
+  .name             {float: left;}
+  .name a           {font-weight: bold;
+                     font-size: large;
+                     line-height: 1.1;}
+  .version          {font-weight: normal;}
+  .driver           {float: right; 
+                     font-size: small;
+                     font-weight: bold; 
+                     color: darkturquoise;} 
+  .npm       a      {font-family: monospace serif;
+                     color: inherit;
+                     text-decoration: underline;}
+  .foot             {font-size: small;
+                     font-weight: bold;}
+  .queries          {overflow: hidden; 
+                     background-color: lightgoldenrod;
+                     position: relative;}  
+  .queries   label  {float: left;}
+  .queries   button {clear: both; 
+                     color: green;}
+  #results          {display: -webkit-flex;
+                     display: -ms-flexbox;
+                     display: flex;
+                     -webkit-justify-content: center;
+                     -ms-flex-pack: center;
+                     justify-content: center;}
+  .result           {white-space: pre; 
+                     overflow: scroll;                       
+                     font-size: small;}
+  .result    table  {width: 100%;}
+  .result  textarea {height: 2em;}
