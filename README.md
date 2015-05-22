@@ -14,12 +14,17 @@ urData object:
     db: 'interfaceInUse',           // defaults to storeNames[0], must be 
     storeNames: storeNames,         // array of administrator specified stores   
     options: {                      // web server/socket configuration details for the node instance 
-      IP: serverIPv4s,                // obtained at node server instantiation
-      port: serverPort,               // provided at startup 
+      IP: serverIPv4s,              // obtained at node server instantiation
+      port: serverPort,             // provided at startup 
     },
     stores: [],                     // indexed array of conforming interface schemas (see below)
-    importStores: importStores,     // method to load conforming interface schemas using StoreNames array
-    verifySchema: verifySchema,     // method to verify that all interface schemas loaded are conforming
+    methods: {                      // associative array: application object scoped functions 
+      importStores: importStores,   // load interface schemas using StoreNames array
+      verifySchema: verifySchema,   // method to verify that all interface schemas loaded are conforming
+      load: load,                   // create or overlay the              
+      commit: commit,               // push current db to same db in all storage engines      
+      concur: concur                // push urData object to all storage engines 
+    },
     routes: require('./urRoutes'),  // stored procedure query proxy map  
     render: require('./render'),    // administrative UI view and controller
     os: require('os'),              // node server's operating platform  
@@ -36,15 +41,15 @@ urData object:
   };
 ```
 
-conforming interface schema:
+conforming store array element:
 
 ```javascript
   {
-    id: module.id,
+    name = require('path').basename(module.filename, '.js'),
+    moduleId: module.id,        // expecting .filename but not guaranteed 
     store: {                    // properties of the storage engine instance 
-      name: 'instance',               
-      product: 'engineBrand',            
-      version: 'engineBrandThisInstance',             
+      product: 'product name',            
+      version: 'x.x.x',         //      
       setVersion: getVersion    // node server async start-up event fetch of product version
     },    
     driver: {                   // API project for this store available thru NPMjs.org 
@@ -52,17 +57,17 @@ conforming interface schema:
       version: dvrVersion()     // interface import-time fetch (preferred) or hardwired "NPM package -version" 
     },   
     options: {                  // associative array of attributes used to connect store and driver to interface
-      [ attribute : value[,]            // any valid JSON   
-       [attribute : value[,]...]                          
+       [name : value[,]            // any valid JSON   
+       [name : value[,]...]                          
     },
-    queries: {                // associative array of interface scoped query methods 
-      read: read,                       // query common to all interfaces              
-      insert: insert,                   // common to all 
-      update: update,                   // common to all
-      upsert: upsert,                   // common to all
-      remove: remove[,                  // common to all 
-      another1: function () {} [,]...]  // instantial interface scoped 'stored procedures'
-      another2: function () {}          // instantial
+    queries: {                  // associative array: interface array scoped functions
+      read: read,                       // store DML uses last image loaded  
+      insert: insert,                   // is applied only to buffer space when changed   
+      update: update,                    
+      upsert: upsert,                   // may then be propogated with a commit 
+      remove: remove[,                  
+      another1: function () {} [,]...]  // 'stored procedures'
+      another2: function () {} [,]...]         
     },
     docs: {                   // associative array of URLs useful online documentation  
       store: 'http://...',              // key expected by administrative UI
@@ -80,4 +85,3 @@ conforming interface schema:
   ```
 
 if you don't node your data you don't node nuthin'
-  
