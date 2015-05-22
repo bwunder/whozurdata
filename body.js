@@ -1,6 +1,0 @@
-
-    onload= function()  {
-      setDb();
-    };
-    
-      
