@@ -1,25 +1,11 @@
-// store names map to .js files relative to server folder
-// the modules created are schema conformed  
+// store names map to .js file name of the interface module
+// the modules created are built from the fixed schema elements  
 // do not include the .js extention
 var fs = require('fs'),
     path = require('path'),
     serverPort = process.env.PORT||8124,
     storesFolder = './stores/',
     storeNames = [];
-    
-/*
-    storeNames = 
-    
-    [
-      'scratch', 
-      'mongo', 
-      'orient',
-//      'sqlite',
-//      'cassandra',
-//      'redis',
-//      'postgres',
-    ];  
-*/
 
 // use basename for all .js files in the stores folder
 //?? function output should use emitter ???  
@@ -29,7 +15,7 @@ var initStoreNames = function (urData) {
     storeNames.push(path.basename(file, '.js'));
   });
   urData.storeNames = storeNames;
-  urData.domain.emit('app', {'function': 'initStoreNames', 'storeNames': urData.storeNames});
+  urData.domain.emit('unitTest', {'function': 'initStoreNames', 'storeNames': urData.storeNames});
 };
 
 // stores, rendering and routing are loaded at startup but file can also be edited on the fly?
@@ -43,10 +29,10 @@ var importStores = function(urData) {
       try {
         urData.stores.push(require('./stores/' + name)); 
         urData.stores[urData.storeNames.indexOf(name)].store.setVersion();
-        urData.domain.emit('app', {'function': 'importStores', 'store': name});
+        urData.domain.emit('unitTest', {'function': 'importStores', 'store': name});
       }
       catch (e) {
-        urData.domain.emit('app', {'function': 'importStores', 'store': name, 'NODB': e});
+        urData.domain.emit('unitTest', {'function': 'importStores', 'store': name, 'NODB': e});
       }
     });
   }
@@ -56,34 +42,72 @@ var importStores = function(urData) {
   }
 };
 
-//?? expecting the functional import to enable on the fly changes???
+//?? can this be called later after on the fly changes to the file???
 var importRender = function(urData) {
   urData.render = require('./page/render');
-  urData.domain.emit('app', {'function': 'importRender', 'result': urData.render });
+  urData.domain.emit('unitTest', {'function': 'importRender', 'result': urData.render });
 };
 
 var importRoutes = function(urData) {
   urData.routes = require('./urRoutes');
-  urData.domain.emit('app', {'function': 'importRoutes', 'result': urData.routes});
+  urData.domain.emit('unitTest', {'function': 'importRoutes', 'result': urData.routes});
 };
 
-// make sure top level keys and all 2nd level keys in store and driver of all configured stores have same names whoop whoop kerplop!
+// check for fixed store schema (fixed as described in README.md) - store specific variables 
+// belong under the options key.  options is expected only as a top key with no predetermined values inside,  
 var verifySchema = function(urData) {
-  var expectedTopKeys = Object.keys(urData.stores[urData.storeNames.indexOf(urData.db)]);
-  var expectedStoreKeys = Object.keys(urData.stores[urData.storeNames.indexOf(urData.db)].store);
-  var expectedDriverKeys = Object.keys(urData.stores[urData.storeNames.indexOf(urData.db)].driver);
+  var verified = true; 
+  var actualDomainKeys, actualStoreKeys, actualDriverKeys, actualQueryKeys, actualDocsKeys, actualSourceKeys; 
+  var expectedDomainKeys    = ['name','moduleId','store','driver','options','queries','docs','source'];
+  var expectedStoreKeys  = ['project','version','setVersion'];
+  var expectedDriverKeys = ['project','version'];
+  var expectedQueryKeys  = ['read','insert','update','upsert', 'remove', 'readUrData', 'upsertUrData'];
+  var expectedDocKeys    = ['store','driver'];
+  var expectedSourceKeys = ['store','driver'];
+
+  // expected must be in actual but actual is free to have any additional elements 
+  var asExpected = function(array1, expectedElements) {
+    expectedElements.forEach( function (element) {
+      if (verified & array1.indexOf(element) < 0) {
+        verified = false;
+      }
+    });
+    urData.domain.emit('unitTest', {'function': 'asExpected', 
+                                    'array': array1, 
+                                    'expectedElements': expectedElements, 
+                                    'exptd': verified});
+    return;    
+  };
+
   urData.storeNames.forEach(function(name) {
-    var actualTopKeys = Object.keys(urData.stores[urData.storeNames.indexOf(name)]);
-    var actualStoreKeys = Object.keys(urData.stores[urData.storeNames.indexOf(name)].store);
-    var actualDriverKeys = Object.keys(urData.stores[urData.storeNames.indexOf(name)].driver);
-    if (actualTopKeys.length != expectedTopKeys.length) return false;
-    if (actualStoreKeys.length != expectedStoreKeys.length) return false;
-    if (actualDriverKeys.length != expectedDriverKeys.length) return false;
-    for (var k in actualTopKeys) if (actualTopKeys[k] != expectedTopKeys[k]) return false;
-    for (var s in actualStoreKeys) if (actualStoreKeys[s] != expectedStoreKeys[s]) return false;
-    for (var d in actualDriverKeys) if (actualDriverKeys[d] != expectedDriverKeys[d]) return false;
+    if (verified) {
+console.log(name);
+console.log(urData.stores.length);
+console.log(urData.storeNames.indexOf(name));
+console.log(urData.stores[urData.storeNames.indexOf(name)].name);
+console.log(Object.keys(urData.stores[urData.storeNames.indexOf(name)]));
+      // any false will set verfied to false if expected object keys not there as expected
+      asExpected(Object.keys(urData.stores[urData.storeNames.indexOf(name)]), expectedDomainKeys); 
+console.log(Object.keys(urData.stores[urData.storeNames.indexOf(name)]).store);
+      asExpected(Object.keys(urData.stores[urData.storeNames.indexOf(name)].store), expectedStoreKeys); 
+console.log(Object.keys(urData.stores[urData.storeNames.indexOf(name)]).driver);
+      asExpected(Object.keys(urData.stores[urData.storeNames.indexOf(name)].driver), expectedDriverKeys); 
+console.log(Object.keys(urData.stores[urData.storeNames.indexOf(name)]).queries);
+      asExpected(Object.keys(urData.stores[urData.storeNames.indexOf(name)].queries), expectedQueryKeys); 
+console.log(Object.keys(urData.stores[urData.storeNames.indexOf(name)]).docs);
+      asExpected(Object.keys(urData.stores[urData.storeNames.indexOf(name)].docs), expectedDocKeys); 
+console.log(Object.keys(urData.stores[urData.storeNames.indexOf(name)]));
+      actualSourceKeys = []; 
+      urData.stores[urData.storeNames.indexOf(name)].source.forEach(function (nameValue) {    
+        actualSourceKeys.push(Object.keys(nameValue)[0]); 
+      });
+console.log(actualSourceKeys);
+      asExpected(actualSourceKeys, expectedSourceKeys);
+console.log(verified);
+    }
   }); 
-  return true;
+  urData.domain.emit('unitTest', {'function': 'verifySchema', 'verified': verified});
+  return verified;
 };
 
 var getServerIPV4s = function(urData) {
@@ -101,24 +125,28 @@ var getServerIPV4s = function(urData) {
         });  
       });
   }
-  urData.domain.emit('app', {'function': 'getServerIPV4s', 'return': IPs});
-  urData.IP = IPs;  // [ XXX.XXX.XXX.XXX, ...]
+  urData.domain.emit('unitTest', {'function': 'getServerIPV4s', 'return': IPs});
+  urData.options.IP = IPs;  // [ XXX.XXX.XXX.XXX, ...]
 };
 
 //load all stores from urData.db into urData object 
 var load= function (urData) {
   // init from files on server if targeting the memory object
   if (urData.db === urData.storeNames[0]) {
-    // would be a good place to load a snapshot too
+    // would be a place to load a snapshot as well
     importStores();
   }
-  else { // overload object from urData.db 
+  else { // overload object from urData.db as created at startup with data from this db
     urData.route = 'load';
     urData = urData.routes[urData.route](urData);     
   }
 };
 
-//persist current UrData object to urData.db
+//persist current UrData object to current urData.db
+//will be out of sync with data stored in other dbs 
+//so higher possiblity of data loss if catastrophic runtime failure  
+//until commit has been concurred (commit to data pushed across all stored data)
+//as transactional as each store is able
 var commit = function (urData) {
   urData.stores.forEach( function (store) {
     if (urData.db != store.name) {
@@ -144,18 +172,19 @@ module.exports = {
   options: {
     IP: [],
     port: serverPort,
+    unitTest: true, 
+    mtailsize: 20
   },
   stores: [],
   methods: {
-    initStoreNames: initStoreNames, 
     importRender: importRender,
     importRoutes: importRoutes,
     importStores: importStores,
     verifySchema: verifySchema,
     getServerIPV4s: getServerIPV4s,  
     load: load,
-    commit: commit,
-    concur: concur
+    commit: commit,                    // object save to urData.db - for scratch is a snapshot to date named file
+    concur: concur                     // push save object into all cfg'd stores - including the snapshot
   },
   routes: [],
   render: {},
@@ -163,7 +192,10 @@ module.exports = {
     name: 'Bill Wunder',
     email: 'bwunder@yahoo.com'
   },  
-  version: '0.0.1',
-  license: 'MIT'
+  version: '0.0.2',
+  license: 'MIT',
+  domain: {},
+  request: {},
+  mtail: [],
 };
 

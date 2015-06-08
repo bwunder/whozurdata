@@ -27,7 +27,7 @@ module.exports = function(urData) {
             '</form>'].join('');              
   }; 
   var attributes = function () {
-    var hint = 'inspect urData';
+    var hint = 'urData object';
     var attributeChoices = [
       '<option selected disabled>', hint, '&hellip;</option>',
       '<option value="urData">urData object</option>',
@@ -41,14 +41,15 @@ module.exports = function(urData) {
             '</select>'].join('');
   };
   var module = function () {
-    var hint = 'inspect ' + urData.db;
+    var hint = urData.db + ' interface';
+    var selected = urData.route === 'urData'? urData.request.query.attribute: 'nothinf'
     var moduleChoices = [
       '<option selected disabled>', hint, '&hellip;</option>',
-      '<option value="file">source file</option>',
-      '<option value="object">db interface</option>',
+      '<option value="file" ', selected === 'file'?'selected':'', '>source file</option>',
+      '<option value="object" ', selected === 'object'?'selected':'', '>db interface</option>',
       '<optgroup label="object keys...">'].join('');                    
     Object.keys(db).forEach(function(key) {
-      moduleChoices += ['<option>', key, '</option>'].join('');
+      moduleChoices += ['<option ', selected === key?'selected':'', '>', key, '</option>'].join('');
     });
     moduleChoices += '</optgroup>';
     return ['<select name="keys" placeholder="', hint,'..." onchange="getModule(this)">',
@@ -56,7 +57,7 @@ module.exports = function(urData) {
             '</select>'].join('');
   };
   var docs = function () {
-    var hint = 'read documents';
+    var hint = 'rtfm';
     var docChoices = ['<option selected disabled>', hint,'&hellip;</option>'].join('');
     Object.keys(urData.stores[urData.storeNames.indexOf(urData.db)].docs).forEach( function(doc) {  
       docChoices += ['<option label="', doc, , '" value= "', 
@@ -74,15 +75,14 @@ module.exports = function(urData) {
           sourceChoices += ['<option label="', Object.keys(nameValue)[0], 
                             '" value="', nameValue[Object.keys(nameValue)[0]], '">'].join(''); 
     });
-    return ['<select name="source" onchange="openSource(this)"',
-                    'placeholder="', hint,'&hellip;">',
+    return ['<select name="source" onchange="openSource(this)" placeholder="', hint,'&hellip;">',
               '<datalist>', sourceChoices, '</datalist>',
             '</select>'].join('');
   };      
   var question = function () {
     var queries = '<option value="" selected disabled>proc&hellip;</option>';
-    var names = '<option value="" disabled>store(s)</option>';
-    var keys = '<option value="" disabled>key(s)</option>';
+    var names = '';//'<option value="" disabled>store(s)</option>';
+    var keys = '';//'<option value="" disabled>key(s)</option>';
     urData.storeNames.forEach(function (name) {  
       names += ['<option',
                urData.request.query.names.indexOf(name) >= 0? ' selected>': '>', 
@@ -95,22 +95,22 @@ module.exports = function(urData) {
     });
     Object.keys(urData.stores[urData.storeNames.indexOf(urData.db)].queries).forEach(function (proc) {
       queries += ['<option',
-               urData.request.query.path === proc? ' selected>': '>', 
+               urData.request.query.proc === proc? ' selected>': '>', 
                proc, '</option>'].join("");
       });
       return ['<form id="query" action="/query">',
                 '<fieldset>',
                   '<legend>query</legend>',
                   '<input type="hidden" name="db" value="', urData.db, '">',
-                  '<select id="proc" name="proc" required>',
+                  '<select id="proc" name="proc" placeholder="proc..." required>',
                     '<datalist>', queries, '</datalist>',
                   '</select>',        
-                  '<select id="names" name="names" multiple>',
+                  '<label for="names">store(s)<br /><select id="names" name="names" multiple>',
                     '<datalist>', names, '</datalist>',
-                  '</select>',
-                  '<select id="keys" name="keys" multiple>',
+                  '</select></label>',
+                  '<label for="keys">key(s)<br /><select id="keys" name="keys" multiple>',
                     '<datalist>', keys, '</datalist>',
-                  '</select>',
+                  '</select></label>',
                   '<button>run <span id="runner">&#x25BA;</span></button>',
                 '</fieldset>',
               '</form>'].join(''); 
@@ -123,7 +123,7 @@ module.exports = function(urData) {
         markup += toTable(reply[row]);      
       }
     }
-    else {
+    else {  // singleton but could still be JSON
       markup = toMarkup(reply);        
     }
     return  ['<form id="results">',
@@ -151,21 +151,14 @@ module.exports = function(urData) {
             question(),
             answer()].join('');  
   };
-  var yo = function() {
-    return ['<form id="chatform" action="/message">',
-              '<fieldset>',  
-                '<legend>',
-                  'chat',
-                '</legend>',
-                '<input id="m" autocomplete="off" /><button>Send</button>',
-              '</fieldset>',
-            '</form>'].join('');
-  };  
   var embedFile = function ( relPath ) {
     return fs.existsSync( relPath )? fs.readFileSync(relPath, 'utf8'): 'no file';
   }; 
   var toTextarea = function (value) {
     if (typeof value === 'number') {
+      value = value.toString();
+    }
+    if (typeof value === 'boolean') {
       value = value.toString();
     }
     return ['<textarea  class="resultItem" onfocus="openTextarea(this)" onblur="closeTextarea(this)">',
@@ -184,6 +177,19 @@ module.exports = function(urData) {
                  }),
             '</textarea>'].join(''); 
   };
+  var yo = function() {
+    return ['<form id="chatform">',
+              '<fieldset>',  
+                '<legend>',
+                  'chat',
+                '</legend>',
+                '<textarea  id="mtail" onfocus="openTextarea(this)" onblur="closeTextarea(this)">',
+                  JSON.stringify(urData.mtail),
+                '</textarea>',
+                '<input id="m" name="m" autocomplete="off" /><button type="button" onclick="sendMsg(this)">Send</button>',
+              '</fieldset>',
+            '</form>'].join('');
+  };  
   var toTable = function (valueObject) {
     var tbl = '';
     tbl += '<table class="resultRow">';
@@ -246,6 +252,7 @@ module.exports = function(urData) {
               '</head>',
               '<body>',
                 mall(),
+                '<script src="/socket.io/socket.io.js"></script>',
                 '<script>',
                 '<!--',
                   embedFile('./page/body.js'),

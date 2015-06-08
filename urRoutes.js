@@ -1,9 +1,11 @@
 module.exports = {
   '/': function (urData) {
-    return 'v. ' + urData['version'];
+    return 'whozurdata v. ' + urData['version'];
   },
-  '/message' : function() {
-  },
+//  '/m' : function() {
+// no submitting of a chat message    
+// <enter> is disabled at the page (see head.js) 
+//  },
   '/urData': function (urData) {
     var key = 
       typeof urData.request.query.attributes === 'string'? 
@@ -22,7 +24,7 @@ module.exports = {
         urData.request.query.keys: 
         urData.request.query.keys[0]; 
     if (key === 'file')  {
-      return require('fs').readFileSync(urData.stores[urData.storeNames.indexOf(urData.db)].id, 'utf8');
+      return require('fs').readFileSync(urData.stores[urData.storeNames.indexOf(urData.db)].moduleId, 'utf8');
     }
     else if (key === 'object') {
       return urData.stores[urData.storeNames.indexOf(urData.db)];
@@ -46,23 +48,18 @@ module.exports = {
   'remove': function(urData) {     
     urData.stores[urData.storeNames.indexOf(urData.db)].queries.remove(urData);
   },  
-  'dbVersion': function(urData) {     
-    urData.stores[urData.storeNames.indexOf(urData.db)].queries.dbVersion();
-  },  
-  'dvrVersion': function(urData) {     
-    urData.stores[urData.storeNames.indexOf(urData.db)].queries.dvrVersion();
-  },
-  'load': function(urData) {
+//  'dbVersion': function(urData) {     
+//    urData.stores[urData.storeNames.indexOf(urData.db)].queries.dbVersion();
+//  },  
+//  'dvrVersion': function(urData) {     
+//    urData.stores[urData.storeNames.indexOf(urData.db)].queries.dvrVersion();
+//  },
+  'readUrData': function(urData) {
     urData.stores[urData.storeNames.indexOf(urData.db)].queries.load();
   },  
-
-
   'upsertUrData': function(urData) { 
     urData.stores[urData.storeNames.indexOf(urData.db)].queries.upsertUrData(urData);              
   },
-  'commit': function(urData) {
-    urData.stores[urData.storeNames.indexOf(urData.db)].queries.commit();
-  },  
   'concur': function(urData) {
     urData.stores[urData.storeNames.indexOf(urData.db)].queries.concur();
   },  

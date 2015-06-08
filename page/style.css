@@ -7,64 +7,47 @@
 a {
     text-decoration: none;
 }                 
-
-.fred {
-    display: flex;
-    flex-basis: content;
-    flex-direction: column;
-    flex-wrap: wrap;
-    align-content: space-around;
-    -webkit-align-content: space-around;
-}
-
 body {
     display: flex;
     flex-direction: column;
-    width: -webkit-fit-content;
-    width: fit-content;
+    max-width: -webkit-fit-content;
+    max-width: fit-content;
 }
-
 fieldset {
     font-family: sans-serif;
     font-variant: small-caps; 
-    margin: 2% 2%;
+}
+select {
+    font-size: large;
 }
 #store fieldset {
     display: flex;
     flex-direction: column;
 }
 #store select {
-    width: 100%;
-    max-width: 200px;
-}
-#resources fieldset {
-    display: flex;
-    flex-direction: column;
+    width: border-box;
+    width: available;
+    width: -webkit-fill-available;
+    padding: 4% 4%;
 }
 #resources select {
-    width: 100%;
-    max-width: 200px;
-}
-#resources fieldset {
-    display: flex;
-    flex-direction: row;
-}
-#query select {
-    width: 40%%;
+    width: available;
+    width: -webkit-fill-available;
+    margin: .5%;
+    padding: 1%;
 }
 #query button {
     border-width: medium;
     background: rgb(130, 224, 255); 
-    margin: 2% 2%;
+    font-size: large;
 }
 #query button :active {
     border-width: thick;
 }
 #results {
-    display: block;
-}
-#results:focus {
-    display: flex;
+    width: available;
+    width: -webkit-fill-available;
+    height:20%;
 }
 .resultRow {
     border-style: dotted;
@@ -73,15 +56,23 @@ fieldset {
 .resultItem {
     white-space: pre nowrap; 
 }
+#chatform { 
+    display: flex;
+    flex-direction: column;
+}
+#mtail {
+    font-size: small;
+    width: available;
+    width: -webkit-fill-available;
+    background: rgb(235, 235, 235);
+    white-space: pre-line;
+}
+#m {
+    padding: 1%;
+    width: available;
+    width: -webkit-fill-available;
+}
 #chatform button { 
-    border-width: medium;
+    width: 10%; 
     background: rgb(130, 224, 255); 
-    border: none; 
-}
-#messages { 
-    list-style-type: none; 
-    margin: 0; padding: 0; 
-}
-#messages li:nth-child(odd) { 
-    background: #eee; 
 }

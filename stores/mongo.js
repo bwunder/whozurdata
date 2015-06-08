@@ -82,17 +82,9 @@ var update = function (urData) {
       urData.projection[urData.keys[i]]= 1;  
       }  
       // read to emit a backup before image into log stream
-      urData.domain.emit('query', {module: module.id, 
-                                   query: 'before_update', 
-                                   projection: urData.projection, 
-                                   result: db.collection(options.collection).find(query, urData.projection).toArray()});
       var options = {'upsert': false , 'multi': false };
       db.collection(options.collection).update(query, urData.store[s], options);
       urData.domain.emit('query', {module: module.id, update: urData.stores[s]});
-      urData.domain.emit('query', {module: module.id, 
-                                   query: 'after_update', 
-                                   projection: urData.projection, 
-                                   result: db.collection(options.collection).find(query, urData.projection).toArray()});
       db.close();
     }
   });
@@ -102,15 +94,9 @@ var upsert = function (urData) {
   MongoClient.connect(uri, function(db) {
     urData.mods.forEach(function(store){
       var query = {'names': store.name};
-      urData.domain.emit('query', {module: module.id, 
-                                   query: 'before_upsert', 
-                                   result: db.collection(options.collection).find(query).toArray()});
       var options = {'upsert': true , 'multi': false };
       db.collection(options.collection).update(query, store, options);
       urData.domain.emit('query', {module: module.id, upsert: store});
-      urData.domain.emit('query', {module: module.id, 
-                                   query: 'after_upsert', 
-                                   result: db.collection(options.collection).find(query).toArray()});
     });
     db.close();
   });
@@ -126,19 +112,21 @@ else
       var store = urData.stores[s];
       var query = {'names': store.name};
       var options = {justOne: true};
-      urData.domain.emit('query', {module: module.id, 
-                                   query: 'before_remove', 
-                                   result: db.collection(options.collection).find(query).toArray()});
       db.collection(db.store.options.collection).remove(query, options);
       urData.domain.emit('query', {module: module.id, query: query, options: options, remove: store});
-      urData.domain.emit('query', {module: module.id, 
-                                   query: 'after_remove', 
-                                   result: db.collection(options.collection).find(query).toArray()});
     }
     db.close();
     });  
   }
 };  
+
+var readUrData = function () {
+  return '?';  
+};
+
+var upsertUrData = function (urData) {
+  return '?';  
+};
 
 var getVersion = function() {
   MongoClient.connect(uri, function(err, db) {
@@ -148,7 +136,7 @@ var getVersion = function() {
       if (err) throw err;
       db.close();
       module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version = info.version;
-      module.parent.exports.domain.emit('app', {'function': 'getVersion', store: name, 'result': info.version});
+      module.parent.exports.domain.emit('unitTest', {'function': 'getVersion', store: name, 'result': info.version});
     });
   });
 };
@@ -158,7 +146,7 @@ var getVersion = function() {
     adminDb.buildInfo(function(info) {
       db.close();
       module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version = info.version;
-      module.parent.exports.domain.emit('app', {'function': 'getVersion', store: name, 'result': info.version});
+      module.parent.exports.domain.emit('unitTest', {'function': 'getVersion', store: name, 'result': info.version});
     });
   });
 };
@@ -167,12 +155,12 @@ module.exports = {
   name: name,
   moduleId: module.id,
   store: { 
-    product: 'MongoDb',
+    project: 'MongoDb',
     version: undefined,
     setVersion: getVersion
   },    
   driver: {
-    name: 'mongodb',
+    project: 'mongodb',
     version: mongoDb.version
   },   
   options: options,
@@ -181,7 +169,9 @@ module.exports = {
     insert: insert,  
     update: update,         
     upsert: upsert,  
-    remove: remove    
+    remove: remove,
+    upsertUrData: upsertUrData,
+    readUrData: readUrData    
   },
   docs: {
     store: 'http://docs.mongodb.org/manual',

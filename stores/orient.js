@@ -51,11 +51,17 @@ var getVersion = function () {
       urClass.list()
       .then(function (records) {
         if (records.length > 1) {
+         
+         
+         
+         
+         
+         
           
         }
 //console.log('Found ' + records.length + ' records in ' + urClass.name);
         module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version = storeVersion; 
-        module.parent.exports.domain.emit('app', {'function': 'getVersion', store: name, 
+        module.parent.exports.domain.emit('unitTest', {'function': 'getVersion', store: name, 
         storeVersion: module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version });
     });
   });
@@ -86,7 +92,7 @@ var upsertUrData = function (urData) {
         storage: 'plocal'
       })
       .then(function (db) {
-        module.parent.exports.domain.emit('app', {'function': 'upsertUrData', store: name, createDb: options.urDatabase});
+        module.parent.exports.domain.emit('unitTest', {'function': 'upsertUrData', store: name, createDb: options.urDatabase});
       });
     }
     var db = server.use(options.urDatabase);
@@ -98,7 +104,7 @@ var upsertUrData = function (urData) {
       if (typeof cix === 'undefined') {
         db.class.create('urData')
         .then(function (urClass) {
-          module.parent.exports.domain.emit('app', {'function': 'upsertUrData', store: name, createClass: urClass});
+          module.parent.exports.domain.emit('unitTest', {'function': 'upsertUrData', store: name, createClass: urClass});
         });
       }
 // insert or update?
@@ -107,7 +113,7 @@ var upsertUrData = function (urData) {
       .then(function (urClass) {
         urClass.list()
         .then(function (records) {
-          module.parent.exports.domain.emit('app', {'function': 'upsertUrData', store: name, 'records': records});
+          module.parent.exports.domain.emit('unitTest', {'function': 'upsertUrData', store: name, 'records': records});
         });
       });
     });
@@ -118,12 +124,12 @@ module.exports = {
   name: name,
   moduleId: module.id,
   store: { 
-    product: 'OrientDb',
+    project: 'OrientDb',
     version: undefined,
     setVersion: getVersion
   },    
   driver: {
-    name: 'oriento',
+    project: 'oriento',
     version: oriento.version
   },   
   options: options,
@@ -141,7 +147,7 @@ module.exports = {
     driver: 'https://github.com/codemix/oriento'
   }, 
   source: [  
-    { OrientDB: 'https://github.com/orientechnologies/orientdb' },
-    { oriento: 'https://github.com/codemix/oriento'}
+    { store: 'https://github.com/orientechnologies/orientdb' },
+    { driver: 'https://github.com/codemix/oriento'}
   ]  
 }; 

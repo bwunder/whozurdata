@@ -1,20 +1,14 @@
+var name = require('path').basename(module.filename, '.js');
 var descr = ['This is the collection of JSON objects in node server\'s process space.',
              'The definitions come from javascript modules required by server.js',
              'html npm help also in local npm installations: cmd "npm help npm"'];
 
 var util = require('util');
 var fs = require('fs');
-var emit = require('events').EventEmitter;
 
-var read = function (names, keys) {
+var read = function (urData) {
   try {
     var result= [];                                      
-    for (n in names) {
-      result.push( {} );  
-      for (k in keys) {
-        result[n][keys[k]] = stores[names[n]][keys[k]];
-      }
-    }
     return result; 
   }
   catch (e) {
@@ -23,107 +17,95 @@ var read = function (names, keys) {
   }
 };
 
-var insert = function (newstores) {   
+var insert = function (urData) {   
   try {
-    for (i in newstores) {
-      if (stores[newstores[i].name]) {
-        throw ['duplicate name', store.name].join(":"); 
+    for (i in urData.stores) {
+      if (1==2) {
+        throw ['duplicate name', urData.stores[i].name].join(":"); 
       }      
-      stores[newstores[i].name] = newstores[i];
-      //hello... is anybody in there....  
-      this.emit(["insert", store.name]);
-      return (["insert", store.name].join(":"));
+      // the insert
     }
   }
   catch (e) {
-    throw ("insert", "names", Object.keys(newstores), "error", e);
+    throw ("insert", "names", Object.keys(urData.stores[i].name), "error", e);
     return;  
   }
 };
 
-var update = function (names, keys) {          
+var update = function (urData) {          
   try {
     var action = 'no-op'; 
-    for (name in names) {
-      for (key in stores[name]) {                                 
-        if (typeof column === 'undefined'||column === key) {
-          if (stores[name][key]) {
-            if (store[name][key] != stores[store.name][key]) {
-              stores[store.name][key] = store[key];           
-              action += ["update", key].join(":");
-            }          
-          }
-          else {
-            stores[store.name].push(store[key]);
-            action += ["insert", key].join(":");
-          } 
-        }
-        if (column === key) break;
+    for (var name in urData.request.query.names) {
+      for (var key in urData.stores[urData.storeNames.indexOf(name)]) {                                 
       }  
     }  
     return action; 
   }
   catch (e) {
-    throw("update","names", names, "keys", keys, "error", e);
-    return;  
+    throw("update","error", e);
   }
 };
 
-var upsert = function (newstores) { 
+var upsert = function (urData) { 
   try {
-    for (store in newstores)
-    if (stores[store.name]) {                                    
-      return update (store); 
-      }
-    else {
-      return insert(store);
-    } 
+
   }
   catch (e) {
     throw("upsert", "error", e);
-    return;  
   }
 };
 
-var remove = function (names, keys) { 
+var remove = function (urData) { 
   try {
-    // cache  
-    names = util.isArray(names)? names: Object.keys(stores);
-    keys= util.isArray(keys)? keys: Object.keys(this.store);   
-    for (name in names)  {      
-      stores.splice(stores[name]);
-    }        
-    // event to help propagate delete to secondary storage  
-    this.emit(['delete',  name]);
-    return ["store ", name, " is deleted from cache"].join("");
   }
   catch (e) {
-    throw("remove","names", names, "keys", keys, "error", e);
-    return;  
   }
+};
+
+var readUrData = function () {
+  return '?';  
+};
+
+var upsertUrData = function () {
+  return '?';  
+};
+
+var getVersion = function () {
+  return '?';  
+};
+
+var dvrVersion = function () {
+  return '??';  
 };
 
 module.exports= {
-  name: 'redis', 
-  version: '0.0.0',
-  docs: {
-    home: 'http://redis.org/',
-    driver: 'http://nodejs.org/',
-  }, 
-  driver: 'node',   
-  filename: module.filename,
+  name: name,
+  moduleId: module.id,
+  store: {
+    project: 'redis',
+    version: undefined,
+    setVersion: getVersion
+  },
+  driver: {
+    project: 'node',
+    version: dvrVersion()
+  },
   options: {},
   queries: {
     read: read,
-    insert: insert,  
-    update: update,         
-    upsert: upsert,  
-    remove: remove    
+    insert: insert,
+    update: update,
+    upsert: upsert,
+    remove: remove,
+    upsertUrData: upsertUrData,
+    readUrData: readUrData
   },
-  source: [  
-    { redis: 'http://?' },
-    { node: 'https://github.com/joyent/node' },
-  ]  
+  docs: {
+    store: 'http://redis.org/',
+    driver: 'http://nodejs.org/',
+  },
+  source: [
+    { store: 'http://?' },
+    { driver: 'https://github.com/joyent/node' },
+  ]
 } 
-
-

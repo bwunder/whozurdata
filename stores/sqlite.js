@@ -22,6 +22,18 @@ var test = db.open(dbfile,
 */
  
 // queries
+var upsertUrData = function (urData) {
+    
+    
+  urData.domain.emit('query', {db: name, upsertUrData: { target: name }});
+}; 
+
+var readUrData = function (urData) {
+  
+
+  urData.domain.emit('query', {db: name, readUrData: { source: name }});
+}; 
+
 var read = function (urData) {
   return []; 
 };
@@ -47,16 +59,15 @@ var dvrVersion = function () {
 }
 
 module.exports= {
-  fred: 'wilma',
-  name: name,
+name: name,
   moduleId: module.id,
   store: {
-    product: 'SQLite',
+    project: 'SQLite',
     version: undefined,
     setVersion: getVersion
   },
   driver: {
-    name: 'node',
+    project: 'node',
     version: dvrVersion()
   },
   options: {
@@ -67,15 +78,17 @@ module.exports= {
     insert: insert,
     update: update,
     upsert: upsert,
-    remove: remove
+    remove: remove,
+    upsertUrData: upsertUrData,
+    readUrData: readUrData
   },
   docs: {
-    home: "https://sqlite.org",
+    store: "https://sqlite.org",
     driver: "http://github.com/mapbox/node-sqlite3"
   },
   source: [
-    {SQLite: "http://system.data.sqlite.org/index.html/tree?ci=trunk"},
-    {sqlite3: "http://github.com/mapbox/node-sqlite3"}
+    {store: "http://system.data.sqlite.org/index.html/tree?ci=trunk"},
+    {driver: "http://github.com/mapbox/node-sqlite3"}
   ]
 } 
 

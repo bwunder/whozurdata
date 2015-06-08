@@ -1,4 +1,5 @@
 var name = require('path').basename(module.filename, '.js');
+var fs = requir('fs');
 // urData query parameter attributes:
 //    added at startup:
 //      urData.domain - created from core node libraries
@@ -45,17 +46,29 @@ var read = function (urData) {
 //TODO!  if scratch is selected, the data will be reloaded from file and overwrite the current iamge
 //TODO!  commit to move the data from memory into urData.db, concur to save urData.db image to other stores
 
+
 var upsertUrData = function (urData) {
-  urData.forEach( function(store) {
-    if (urData.stores[store.name]) {
-      update(store);
-    }
-    else {
-      insert(store);
-    }  
-    urData.domain.emit('query', {db: name, upsert: { store: store }});
-  }); 
+  //only for the scratch object we create a snapshot of the urData object
+  // datastamp'd filename
+  var snapshotName = './snapshots/' + Date.now();  
+  fs.writeFile(snapshotName, JSON.stringify(urData), function (data) {
+    urData.domain.emit('query', {db: name, snapshot: snapshotName});
+  });
 }; 
+
+var readUrData = function (urData) {
+  // latest snapshot else reload from the files
+// this may allow use by copy of snapshot without the files later?
+// is this in the domain, will fs errors even be seen?
+// will the domain be a problem during snapshot?
+  fs.readdir('./snapshots', function (files) {
+console.dir(files);
+        
+  }) 
+
+    urData.domain.emit('query', {db: name, readUrData: { source: name }});
+}; 
+
 
 // insert a store
 // in scratch this means adding it to UrData.storeNames[] and UrData.stores[] in urData.js
@@ -102,9 +115,7 @@ var remove = function (urData) {
 // to verify runtime connectivity  - done at import during domain startup - see urData.js
 var getVersion = function () {
   module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version = module.parent.exports.version;
-  module.parent.exports.domain.emit('app', {'function': 'getVersion',
-                                             store: name, 
-                                            'return': module.parent.exports.version});
+  module.parent.exports.domain.emit('unitTest', {'function': 'getVersion',store: name, 'return': module.parent.exports.version});
 },
 dvrVersion = function () {
   return process.version;
@@ -121,13 +132,14 @@ module.exports= {
   name: name,
   moduleId: module.id,
   store: {
-    product: 'JSON',
+    project: 'JSON',
     version: undefined,
     setVersion: getVersion
   },
   driver: {
-    name: 'node',
-    version: dvrVersion()
+    project: 'node',
+    version: undefined,
+    setVersion: dvrVersion()
   },
   options: {},
   queries: {
@@ -135,7 +147,9 @@ module.exports= {
     insert: insert,
     update: update,
     upsert: upsert,
-    remove: remove
+    remove: remove,
+    upsertUrData: upsertUrData,
+    readUrData: readUrData
   },
   docs: {
     store: 'http://json.org/',

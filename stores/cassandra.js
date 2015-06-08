@@ -20,6 +20,19 @@ var callback = function (err, result) {
   }
 }
 
+var upsertUrData = function (urData) {
+    
+    
+  urData.domain.emit('query', {db: name, upsertUrData: { target: name }});
+}; 
+
+var readUrData = function (urData) {
+  
+
+  urData.domain.emit('query', {db: name, readUrData: { source: name }});
+}; 
+
+
 function getOptions (store) {
   client.execute("SELECT * FROM stores WHERE name = ?", [store.name], callback);
 }
@@ -116,12 +129,12 @@ module.exports= {
   name: name,
   moduleId: module.id,
   store: {
-    product: 'Cassandra',
+    project: 'Cassandra',
     version: undefined,
     setVersion: getVersion
   },
   driver: {
-    name: 'node',
+    project: 'node',
     version: dvrVersion()
   },
   options: {
@@ -130,13 +143,15 @@ module.exports= {
   },
   queries: {
 
-    getOne: getOptions,
+//    getOne: getOptions,
 
     read: readAll,  // rename functions to standard
     insert: insert,
     update: updateOptions,
     upsert: upsert,
-    remove: del 
+    remove: del,
+    upsertUrData: upsertUrData,
+    readUrData: readUrData 
   },
   docs: {
     store: "https://cassandra.apache.org",
