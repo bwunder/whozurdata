@@ -46,13 +46,14 @@ function getViewport() {
  return [window.innerWidth, window.innerHeight];
 }
 
-// too many buttons! gotta suppress the enter key on the page
-// this won't allow manual entry of multiline text message - twitter-ish
-// keep an eye out for something better
+// too many buttons! pushing enter is ambiguous so just turn it off for the page
+// DANGER WILL ROBINSON! One step away from being a keylogger 
 function stopRKey(evt) { 
+console.log(evt);
   var evt = (evt) ? evt : ((event) ? event : null); 
   var node = (evt.target) ? evt.target : ((evt.srcElement) ? evt.srcElement : null); 
   if ((evt.keyCode == 13) && (node.type=="text"))  {return false;} 
 } 
 
 document.onkeypress = stopRKey; 
+

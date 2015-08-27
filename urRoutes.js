@@ -1,18 +1,22 @@
+var fs = require('fs');
+
 module.exports = {
   '/': function (urData) {
     return 'whozurdata v. ' + urData['version'];
   },
-//  '/m' : function() {
-// no submitting of a chat message    
-// <enter> is disabled at the page (see head.js) 
-//  },
   '/urData': function (urData) {
     var key = 
-      typeof urData.request.query.attributes === 'string'? 
-        urData.request.query.attributes: 
-        urData.request.query.attributes[0]; 
+      typeof urData.request.query.attribute === 'string'? 
+        urData.request.query.attribute: 
+        urData.request.query.attribute[0]; 
     if (key === 'urData') {
       return urData;
+    }
+    else if (key === 'file')  {
+      return fs.readFileSync(urData.stores[urData.storeNames.indexOf(urData.db)].moduleId, 'utf8');
+    }
+    else if (key === 'license') {
+      return fs.readFileSync('./license.txt', 'utf8');
     }
     else {
       return urData[key];
@@ -24,7 +28,7 @@ module.exports = {
         urData.request.query.keys: 
         urData.request.query.keys[0]; 
     if (key === 'file')  {
-      return require('fs').readFileSync(urData.stores[urData.storeNames.indexOf(urData.db)].moduleId, 'utf8');
+      return fs.readFileSync(urData.stores[urData.storeNames.indexOf(urData.db)].moduleId, 'utf8');
     }
     else if (key === 'object') {
       return urData.stores[urData.storeNames.indexOf(urData.db)];
@@ -36,31 +40,16 @@ module.exports = {
   'read': function (urData)  { 
     return urData.stores[urData.storeNames.indexOf(urData.db)].queries.read(urData);               
   }, 
-  'update': function (urData) { 
-    urData.stores[urData.storeNames.indexOf(urData.db)].queries.update(urData);               
-  },
-  'insert': function (urData) {     
+  'log': function (urData) { 
     urData.stores[urData.storeNames.indexOf(urData.db)].queries.insert(urData);               
-  }, 
-  'upsert': function(urData) { 
-    urData.stores[urData.storeNames.indexOf(urData.db)].queries.upsert(urData);              
   },
   'remove': function(urData) {     
     urData.stores[urData.storeNames.indexOf(urData.db)].queries.remove(urData);
   },  
-//  'dbVersion': function(urData) {     
-//    urData.stores[urData.storeNames.indexOf(urData.db)].queries.dbVersion();
-//  },  
-//  'dvrVersion': function(urData) {     
-//    urData.stores[urData.storeNames.indexOf(urData.db)].queries.dvrVersion();
-//  },
   'readUrData': function(urData) {
     urData.stores[urData.storeNames.indexOf(urData.db)].queries.load();
   },  
   'upsertUrData': function(urData) { 
     urData.stores[urData.storeNames.indexOf(urData.db)].queries.upsertUrData(urData);              
-  },
-  'concur': function(urData) {
-    urData.stores[urData.storeNames.indexOf(urData.db)].queries.concur();
-  },  
+  }
 };

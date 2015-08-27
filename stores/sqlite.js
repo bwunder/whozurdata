@@ -52,14 +52,14 @@ var remove = function (name) {
 
 var getVersion = function () {
   return '?';  
-}
+};
 
 var dvrVersion = function () {
   return '??';  
-}
+};
 
-module.exports= {
-name: name,
+module.exports = {
+  name: name,
   moduleId: module.id,
   store: {
     project: 'SQLite',
@@ -75,8 +75,7 @@ name: name,
   },
   queries: {
     read: read,
-    insert: insert,
-    update: update,
+    log: insert,
     upsert: upsert,
     remove: remove,
     upsertUrData: upsertUrData,
@@ -90,7 +89,7 @@ name: name,
     {store: "http://system.data.sqlite.org/index.html/tree?ci=trunk"},
     {driver: "http://github.com/mapbox/node-sqlite3"}
   ]
-} 
+}; 
 
 /*
     read: read,               // name(s) optional, column(s) optional

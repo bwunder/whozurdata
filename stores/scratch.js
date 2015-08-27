@@ -1,21 +1,22 @@
 var name = require('path').basename(module.filename, '.js');
-var fs = requir('fs');
+var fs = require('fs');
 // urData query parameter attributes:
-//    added at startup:
-//      urData.domain - created from core node libraries
-//    whenever urData is imported
-//      urData.render
-//      urData.routes
-//    when the urData.db is changed
-//      urData.storeNames item index matches urData.stores item with same store.name
-//    at each request callback:
-//      urData.db
-//      urData.route
+//    added 
+//      at startup:
+//        urData.domain - core node lib
+//      when the urData.db is changed
+//        urData.storeNames item index matches urData.stores item with same store.name
+//      at each request callback:
+//        urData.db
 //      urData.request
-//        .query
+//        .query (url parse returns following keys (.query is 1 deep object, all others are primitives)  
+//                'protocol','slashes', 'auth', 'host', 'port', 'hostname', 'hash', 'search', 'query', 'pathname','path', and 'href'
+//          added by callback (should move code into this module)              
 //          .names      - subset of urData.storeNames indicating interesting urData.stores
 //          .keys       - urData.stores[] object or top level subkey(s) of
 //          .attributes - urData object or top level subkey(s) of
+//          
+//        .pathname  
 var read = function (urData) {
   var result= [];
   if (urData.request.query.attributes) {
@@ -115,9 +116,10 @@ var remove = function (urData) {
 // to verify runtime connectivity  - done at import during domain startup - see urData.js
 var getVersion = function () {
   module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version = module.parent.exports.version;
-  module.parent.exports.domain.emit('unitTest', {'function': 'getVersion',store: name, 'return': module.parent.exports.version});
-},
-dvrVersion = function () {
+  module.parent.exports.domain.emit('test', {'function': 'getVersion', store: name, 'return': module.parent.exports.version});
+};
+
+var dvrVersion = function () {
   return process.version;
 };
 
@@ -137,15 +139,14 @@ module.exports= {
     setVersion: getVersion
   },
   driver: {
-    project: 'node',
+    project: 'node.js',
     version: undefined,
     setVersion: dvrVersion()
   },
   options: {},
   queries: {
     read: read,
-    insert: insert,
-    update: update,
+    log: insert,
     upsert: upsert,
     remove: remove,
     upsertUrData: upsertUrData,

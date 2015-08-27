@@ -3,7 +3,7 @@ var fs = require('fs');
 module.exports = function(urData) {
   var s = urData.storeNames.indexOf(urData.db);
   var db = urData.stores[s];
-  var catalog = function () {
+  var storeCatalog = function () {
     var choices = ['<option ', db.name, ' selected disabled>',
                       db.name,
                   '</option>'].join(''); 
@@ -21,28 +21,31 @@ module.exports = function(urData) {
                   '<datalist id="dbChoices">', choices, '</datalist>',
                 '</select>',
                 '<label>engine: <b>', db.store.product, '</b>&nbsp;', db.store.version, '</label>', 
-                '<label>driver: <b><a href="http://npmjs.com/package/', db.driver.name, '" target="_blank">',
-                    db.driver.name, '</a></b>&nbsp;', db.driver.version, '</label>',
+                '<label>driver: <b><a href="http://npmjs.com/package/', db.driver.project, '" target="_blank">',
+                    db.driver.project, '</a></b>&nbsp;', db.driver.version, '</label>',
               '</fieldset>',
             '</form>'].join('');              
   }; 
   var attributes = function () {
     var hint = 'urData object';
+    var selected = urData.route('/urData')? urData.request.query.attribute: '';
     var attributeChoices = [
       '<option selected disabled>', hint, '&hellip;</option>',
-      '<option value="urData">urData object</option>',
-      '<optgroup label="key attributes...">'].join('');                    
-    Object.keys(urData).forEach(function(attributes) {
-      attributeChoices += ['<option value="', attributes ,'">', attributes, '</option>'].join('');
+      '<option value="file" ', selected === 'file'?'selected':'', '>source file</option>',
+      '<option value="urData" ', selected === 'urData'?'selected':'', '>urData object</option>',
+      '<optgroup label="keyed attributes...">'].join('');                    
+    Object.keys(urData).forEach(function(attribute) {
+      attributeChoices += ['<option ', selected === attribute?'selected':'', '>', attribute, '</option>'].join('');
     });
     attributeChoices += '</optgroup>';
-    return ['<select name="attributes" placeholder="', hint,'..." onchange="getObject(this)">',
+//    return ['<select name="attribute" placeholder="', hint,'..." onchange="getObject(this)">',
+    return ['<select name="attribute" onchange="getObject(this)">',
               '<datalist>', attributeChoices, '</datalist>',
             '</select>'].join('');
   };
   var module = function () {
     var hint = urData.db + ' interface';
-    var selected = urData.route === 'urData'? urData.request.query.attribute: 'nothinf'
+    var selected = urData.route('/module')? urData.request.query.attribute: '';
     var moduleChoices = [
       '<option selected disabled>', hint, '&hellip;</option>',
       '<option value="file" ', selected === 'file'?'selected':'', '>source file</option>',
@@ -60,8 +63,8 @@ module.exports = function(urData) {
     var hint = 'rtfm';
     var docChoices = ['<option selected disabled>', hint,'&hellip;</option>'].join('');
     Object.keys(urData.stores[urData.storeNames.indexOf(urData.db)].docs).forEach( function(doc) {  
-      docChoices += ['<option label="', doc, , '" value= "', 
-                      urData.stores[urData.storeNames.indexOf(urData.db)].docs[doc], '">'].join('');
+      docChoices += ['<option label="', doc, '" value= "', 
+                      urData.stores[urData.storeNames.indexOf(urData.db)].docs[doc], '"></option>'].join('');
     });
     return ['<select name="docs" onchange="openDoc(this)" title="Internet documents"',
                     'placeholder="', hint, '...">',
@@ -75,14 +78,15 @@ module.exports = function(urData) {
           sourceChoices += ['<option label="', Object.keys(nameValue)[0], 
                             '" value="', nameValue[Object.keys(nameValue)[0]], '">'].join(''); 
     });
-    return ['<select name="source" onchange="openSource(this)" placeholder="', hint,'&hellip;">',
+//    return ['<select name="source" onchange="openSource(this)" placeholder="', hint,'&hellip;">',
+    return ['<select name="source" onchange="openSource(this)">',
               '<datalist>', sourceChoices, '</datalist>',
             '</select>'].join('');
   };      
   var question = function () {
     var queries = '<option value="" selected disabled>proc&hellip;</option>';
-    var names = '';//'<option value="" disabled>store(s)</option>';
-    var keys = '';//'<option value="" disabled>key(s)</option>';
+    var names = '<option value="" disabled>store(s)</option>';
+    var keys = '<option value="" disabled>key(s)</option>';
     urData.storeNames.forEach(function (name) {  
       names += ['<option',
                urData.request.query.names.indexOf(name) >= 0? ' selected>': '>', 
@@ -97,41 +101,44 @@ module.exports = function(urData) {
       queries += ['<option',
                urData.request.query.proc === proc? ' selected>': '>', 
                proc, '</option>'].join("");
-      });
+      });   
+      
       return ['<form id="query" action="/query">',
-                '<fieldset>',
+                '<fieldset id="queryBuilder">',
                   '<legend>query</legend>',
-                  '<input type="hidden" name="db" value="', urData.db, '">',
+                    '<input type="hidden" name="db" value="', urData.db, '">',
                   '<select id="proc" name="proc" placeholder="proc..." required>',
                     '<datalist>', queries, '</datalist>',
                   '</select>',        
-                  '<label for="names">store(s)<br /><select id="names" name="names" multiple>',
+                  '<select id="names" name="names" placeholder="store(s)..." multiple>',
                     '<datalist>', names, '</datalist>',
-                  '</select></label>',
-                  '<label for="keys">key(s)<br /><select id="keys" name="keys" multiple>',
+                  '</select>',
+                  '<select id="keys" name="keys" placeholder="key(s)..." multiple>',
                     '<datalist>', keys, '</datalist>',
-                  '</select></label>',
+                  '</select>',
                   '<button>run <span id="runner">&#x25BA;</span></button>',
+                  answer(),
                 '</fieldset>',
               '</form>'].join(''); 
   };
   var answer = function () {
     var markup = [];
-    var reply = urData.routes[urData.route](urData);
+    var reply = urData.route(urData);
     if (Array.isArray(reply) && typeof reply[0] === 'object') {
       for (var row in reply) {  
-        markup += toTable(reply[row]);      
+        markup += toTable(reply[row],0);      
       }
     }
     else {  // singleton but could still be JSON
-      markup = toMarkup(reply);        
+      markup = toMarkup(reply, 0);        
     }
-    return  ['<form id="results">',
-                '<fieldset>',  
-                  '<legend>results</legend>',
-                  markup,
-                '</fieldset>',  
-              '</form>'].join('');
+    return  markup;
+//    return  ['<form id="results">',
+//                '<fieldset>',  
+//                  '<legend>results</legend>',
+//                  markup,
+//                '</fieldset>',  
+//              '</form>'].join('');
   };
   var resources = function() {
     return ['<form id="resources">',
@@ -144,13 +151,6 @@ module.exports = function(urData) {
                 '</fieldset>',
               '</form>'].join('');
   };  
-  var mall = function () {
-    return [catalog(), 
-            resources(),
-            yo(),
-            question(),
-            answer()].join('');  
-  };
   var embedFile = function ( relPath ) {
     return fs.existsSync( relPath )? fs.readFileSync(relPath, 'utf8'): 'no file';
   }; 
@@ -177,34 +177,95 @@ module.exports = function(urData) {
                  }),
             '</textarea>'].join(''); 
   };
-  var yo = function() {
+  var socketio = function() {
+    // accumulates all messages sent/rec'd by each socket at that socket for the current page load  
+    // but all socket communication [can be] logged (backdoored) at server
+    // refreshing the page updates the list with/to? the [20?] most recent messages seen at the server 
+    var socketList = "";
+
+console.log('urData.io.sockets.length in render', urData.io.sockets.sockets.length);
+
+    urData.io.sockets.sockets.forEach(function(socket) {
+console.log('urData.io.sockets.sockets['+ urData.io.sockets.sockets.indexOf(socket) + '].id: ', socket.id);
+        if (socket.connected && (!socket.disconnected));
+        socketList += ['<dl>',
+                        '<dt>', 
+                          'nickname' || socket.id || socket.remoteAddress, 
+                        '</dt>',
+                        '<dd>', 
+                          '<dl>', 
+                            '<dt>nickname</dt>',
+                            '<dd>',
+                              'sender',
+                            '</dd>',
+                            '<dt>socket</dt>',
+                            '<dd>',
+                              socket.id,
+                            '</dd>',
+                            '<dt>IP</dt>',
+                            '<dd>',
+                              socket.remoteAddress,
+                            '</dd>',
+                          '</dl>',
+                        '</dd>',
+                      '</dl>'].join('');
+      });
+    var descrsList = "";
+    if (urData.messageLog) {
+      urData.messageLog.forEach( function(message) {
+        // build schema based string of html ddlist elements
+        descrsList += ['<dt>', 
+                          (message.sender)?message.sender:message.senderAddress, 
+                        '</dt>',
+                        '<dd>',
+                          '<textarea rows="1" cols="40" wrap="soft" readonly="readonly">', 
+                            new Date(message.emitDate).toLocaleTimeString() + message.message, 
+                          '</textarea>',
+                        '</dd>'].join('');  
+      });
+    }
     return ['<form id="chatform">',
               '<fieldset>',  
                 '<legend>',
-                  'chat',
+                  'con-fab',
                 '</legend>',
-                '<textarea  id="mtail" onfocus="openTextarea(this)" onblur="closeTextarea(this)">',
-                  JSON.stringify(urData.mtail),
-                '</textarea>',
-                '<input id="m" name="m" autocomplete="off" /><button type="button" onclick="sendMsg(this)">Send</button>',
+                '<button type="button" title="resize" onClick="resize(this)">&plusmn;</button>',
+                '<button type="button" title="disconnect" onClick="disconnect(this)">&empty;</button>',
+                '<div id="rtcModes" border="1">',
+                  'text<input name="text" type="checkbox" onchange="toggle(this)" checked>',
+                  'audio<input name="audio" type="checkbox" onchange="toggle(this)" >',
+                  'video<input name="video" type="checkbox" onchange="toggle(this)" >',
+                  'draw<input name="draw" type="checkbox" onchange="toggle(this)" >',
+                  'screen<input name="display" type="checkbox" onchange="toggle(this)" >',
+                '</div>',      
+                'available sockets',
+                '<div id="socketList" border="1">',
+                  socketList,
+                '</div>',      
+                '<div class="messages" onchange="rollUp()">',
+                  '<dl id="messages">', descrsList, '</dl>',
+                '</div>',      
+                '<label>nickname<br /><input id="nickname" name="nickname" placeholder="use ', urData.options.IP,'"></label>',
+                '<textarea id="m" name="m" wrap="soft" placeholder="enter your message\n then hit\"Send\""></textarea>',
+                '<button class="send" type="button" onclick="sendMsg()">Send</button>',
               '</fieldset>',
             '</form>'].join('');
   };  
-  var toTable = function (valueObject) {
+  var toTable = function (valueObject, recursionDepth) {
     var tbl = '';
     tbl += '<table class="resultRow">';
     for (var colKey in valueObject) {
       tbl += ['<tr>',
               '<td valign="top">', colKey,':</td>', 
               '<td>',
-                toMarkup(valueObject[colKey]),
+                toMarkup(valueObject[colKey], recursionDepth + 1),
               '</td>',
               '</tr>'].join('');
     }
     tbl += '</table>';
     return tbl;
   };
-  var toMarkup = function (value) {
+  var toMarkup = function (value, recursionDepth) {
     var markup = '';
     switch (typeof value) {  
       case ('undefined'):
@@ -218,14 +279,24 @@ module.exports = function(urData) {
           if (value.every(function(element, index, array) {return (typeof element === 'string');})) {
             markup = toTextarea(value.toString());
           }
-          else {  
-            for (var i in value) {
-              markup += toMarkup(value[i]);
+          else {
+            if (recursionDepth > 3) {
+              markup = toTextarea(require('util').inspect(value));
+            }
+            else {
+              for (var i in value) {
+                markup += toMarkup(value[i], recursionDepth + 1);
+              }
             }
           }
         }
         else {
-          markup = toTable(value);
+          if (recursionDepth > 3) {
+            markup = toTextarea(require('util').inspect(value));
+          }
+          else {
+            markup = toTable(value, recursionDepth + 1);
+          }
         }
         break;
       default:                                    
@@ -234,10 +305,18 @@ module.exports = function(urData) {
     return markup;
   };
 
+  var bundle = function() {
+    // build the bundle
+    
+    // use the bundled
+    return '<script src="/page/bundle.js"></script>';
+  };
+  
   return ['<!DOCTYPE html>',
             '<html>',
               '<head>',
                 '<meta charset="UTF-8">',
+                '<meta name="viewport" content="width=device-width">',
                 '<title>whozUrData</title>',
                 '<style type="text/css">',
                 '<!--\n',
@@ -251,14 +330,11 @@ module.exports = function(urData) {
                 '</script>',
               '</head>',
               '<body>',
-                mall(),
-                '<script src="/socket.io/socket.io.js"></script>',
-                '<script>',
-                '<!--',
-                  embedFile('./page/body.js'),
-                '-->',
-                '</script>',
+                socketio(),
+                storeCatalog(), 
+                resources(),
+                question(),
+                bundle(),
               '</body>',
             '</html>'].join(''); 
 };
-

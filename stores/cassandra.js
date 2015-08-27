@@ -146,8 +146,7 @@ module.exports= {
 //    getOne: getOptions,
 
     read: readAll,  // rename functions to standard
-    insert: insert,
-    update: updateOptions,
+    log: insert,
     upsert: upsert,
     remove: del,
     upsertUrData: upsertUrData,

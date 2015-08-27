@@ -101,6 +101,7 @@ var upsert = function (urData) {
     db.close();
   });
 };  
+
 var remove = function (urData) {  
 if (urData.keys.length) {
   update(urData);
@@ -120,13 +121,24 @@ else
   }
 };  
 
-var readUrData = function () {
-  return '?';  
+var readUrData = function (urData) {
+  MongoClient.connect(uri, function(db) {
+    var result = db.collection('urData').findOne().toArray();
+    db.close();
+    urData.domain.emit('query', {module: module.id, result: result});
+    return result;
+  });
 };
 
 var upsertUrData = function (urData) {
-  return '?';  
-};
+  MongoClient.connect(uri, function(err, db) {
+    if (err) throw err;
+    var query = {};
+    var options = {'upsert': true , 'multi': false };
+    db.collection('urData').update(query, urData, options);
+      db.close();
+    });
+};  
 
 var getVersion = function() {
   MongoClient.connect(uri, function(err, db) {
@@ -136,7 +148,7 @@ var getVersion = function() {
       if (err) throw err;
       db.close();
       module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version = info.version;
-      module.parent.exports.domain.emit('unitTest', {'function': 'getVersion', store: name, 'result': info.version});
+      module.parent.exports.domain.emit('test', {'function': 'getVersion', store: name, 'result': info.version});
     });
   });
 };
@@ -146,7 +158,7 @@ var getVersion = function() {
     adminDb.buildInfo(function(info) {
       db.close();
       module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version = info.version;
-      module.parent.exports.domain.emit('unitTest', {'function': 'getVersion', store: name, 'result': info.version});
+      module.parent.exports.domain.emit('test', {'function': 'getVersion', store: name, 'result': info.version});
     });
   });
 };
@@ -166,8 +178,7 @@ module.exports = {
   options: options,
   queries: {
     read: read,
-    insert: insert,  
-    update: update,         
+    log: insert,  
     upsert: upsert,  
     remove: remove,
     upsertUrData: upsertUrData,

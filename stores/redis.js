@@ -93,8 +93,7 @@ module.exports= {
   options: {},
   queries: {
     read: read,
-    insert: insert,
-    update: update,
+    log: insert,
     upsert: upsert,
     remove: remove,
     upsertUrData: upsertUrData,

@@ -1,189 +1,219 @@
-// events are bound to a common connection object through a domain
-// applications consume data through a semi-structured array of data stores available to the node server 
-// a store consists of a local module that imports a packaged driver from npmjs.org  
-// the driver requires an active data    
 var name = 'whozurdata',
     domain = require('domain'),
     fs = require('fs'),
     url = require('url'),
     favicon = require('serve-favicon')('page/twohead.ico'),
-    urDominion = domain.create(),
-    options = { key: fs.readFileSync('page/key.pem'), // not used on c9.io
-                cert: fs.readFileSync('page/cert.pem'),
-                passphrase: 'test'}; //  remove to prompt, do not hardwire in live system
+    urDomain = domain.create(),
+    srv = (process.env.C9_IP)? require('http'): require('https'),
+    options = (process.env.C9_IP)? {}: { key: fs.readFileSync('page/newkey.pem'), 
+                                         cert: fs.readFileSync('page/newcert.pem'),
+                                         passphrase: 'test'};
+// !! remove passphrase to be prompted at tls startup
 
-// object is first thing created inside the domain
-urDominion.run(function(data) {
-  setTimeout(function() {
-    var urData = require('./urData');
-    // set this domain as the domain carried in urData
-    urData.domain = urDominion;  
-
-    // domain scoped variable initialized in startup event handler
-    var srv, app, io;
-
-    var urCallback = function (req, res) {   
-      favicon(req, res, function onNext() {
-        urData.domain.emit('request', { url: req.url });
-        urData.request = url.parse(decodeURI(req.url), true);
-        urData.request.IP = req.socket._socketPeer || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-        urData.request.agent = req.headers['user-agent'];
-        urData.domain.emit('unitTest', {'request': urData.request});
-        urData.route = urData.request.query.proc || urData.request.pathname; 
-        urData.domain.emit('unitTest', {'route': urData.route});
-        try {
-          if (typeof urData.request.query.db != 'undefined') {
-            // urData.db set to undefined if no db in query
-            urData.db = urData.request.query.db;
-            if (urData.storeNames.indexOf(urData.db) === -1) {
-              throw(['invalid target store: ' + urData.db].join('') );
+urDomain.run(function() {
+  // init buffer object from source file and within domain scope
+  // then overload with a snapshot or from urData.db as is appropriate       
+  var urData = require('./urData');
+  urData.domain = urDomain;  
+  var app;
+  
+  var urCallback = function (req, res) {   
+    if (req.url === '/page/bundle.js') {
+      // serve the requested file
+      res.setHeader('content-type', 'application/javascript');
+      res.end(fs.readFileSync(__dirname + req.url, 'utf8'));
+    }
+    else {
+      favicon(req, res, 
+        function onNext() {
+          try {
+            urData.request = url.parse(decodeURI(req.url), true);
+            urData.request.IP = req.socket._socketPeer || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+            urData.request.agent = req.headers['user-agent'];
+// move parse to the emitter
+        urData.domain.emit('request', {'IP': urData.request.IP, 'agent': urData.request.agent, 'url': req.url});
+            urData.domain.emit('test', {'request': urData.request});
+            urData.route = urData.request.query.proc || urData.request.pathname; 
+            urData.domain.emit('test', {'route': urData.route});
+            if (typeof urData.request.query.db != 'undefined') {
+              // urData.db set to undefined if no db in query
+              urData.db = urData.request.query.db;
+              if (urData.storeNames.indexOf(urData.db) === -1) {0
+                throw(['invalid target store: ' + urData.db].join('') );
+              }
             }
-          }
-          else {
-            urData.request.query.db = urData.db || urData.stores[0].name;
-          }
-          if (typeof urData.request.query.names === 'undefined') {
-            // default to urData.db
-            urData.request.query.names = [urData.db];
-          }    
-          else if (typeof urData.request.query.names == 'string') {
-            urData.request.query.names = [urData.request.query.names];
-          }
-          if (typeof urData.request.query.attributes === 'undefined' 
-                && typeof urData.request.query.keys === 'undefined') {
-            // default to keys of urData.db
-            urData.request.query.keys = Object.keys(urData.stores[urData.storeNames.indexOf(urData.db)]);
-          }    
-          else if (typeof urData.request.query.keys == 'string') {
-            urData.request.query.keys = [urData.request.query.keys];
-          }
-          else if (typeof urData.request.query.attributes == 'string') {
-            urData.request.query.attributes = [urData.request.query.attributes];
-          }
-          if (urData.methods.verifySchema(urData)) {
+            else {
+              urData.request.query.db = urData.db || urData.stores[0].name;
+            }
+            if (typeof urData.request.query.names === 'undefined') {
+              // default to current
+              urData.request.query.names = [urData.db];
+            }    
+            else if (typeof urData.request.query.names == 'string') {
+              urData.request.query.names = [urData.request.query.names];
+            }
+            if (typeof urData.request.query.attributes === 'undefined' 
+                  && typeof urData.request.query.keys === 'undefined') {
+              // default to keys of urData.db
+              urData.request.query.keys = Object.keys(urData.stores[urData.storeNames.indexOf(urData.db)]);
+            }    
+            else if (typeof urData.request.query.keys == 'string') {
+              urData.request.query.keys = [urData.request.query.keys];
+            }
+            else if (typeof urData.request.query.attributes == 'string') {
+              urData.request.query.attributes = [urData.request.query.attributes];
+            }
             res.statusCode = 200;
             res.write(urData.render(urData));
           }
-          else {
-            res.statusCode =  500;
-            urData.domain.emit('error', 'schema requirements are not met' );
+          catch (e) {
+            res.statusCode = 500;
+            urData.domain.emit('error', e );
           }
-        }
-        catch (e) {
-          res.statusCode = 500;
-          urData.domain.emit('error', e );
-        }
-        res.end();
+          res.end();
       });
-    };
-
-    urDominion.on('newListener', function(data){
-      urDominion.emit('unitTest', {'add Listener':data});
-    });
-    urDominion.on('unitTest', function(data){
-      if (urData.options.unitTest) {
-        console.dir({unitTest: data});
-      }
-    });
-    urDominion.emit('newListener','newListener');
-    urDominion.emit('newListener','unitTest');
-    urDominion.on('error', function(err) {
-      console.log(err.stack);      
-      urDominion.emit('shutDown');      
-    });
-    urDominion.intercept('error', function(err) {
-      console.log("intercept", err.stack);
-//      urDominion.emit('shutDown');      
-    });
-      urDominion.on('removeListener', function(data){
-      urDominion.emit('unitTest', {removeListener: data});
-      });
-    urDominion.on('request', function(data){
-      console.dir({time: new Date(), 'request': data});
-    });
-    urDominion.on('app', function(data){
-      console.dir({time: new Date(), app: data});
-    });
-    urDominion.on('query', function(data){
-      console.dir('query', data);
-    });
-    urDominion.on('shutDown', function() {
-      try {
-        urData.socket.emit('chat message', 'shutting down server');
-        var killtimer = setTimeout(function() {
-          process.exit(1);
-        }, 6000);
-        //broadcast a shutdown
-console.dir(urData);
-        killtimer.unref();
-        if (app) app.close();
-      } catch (er2) {
-        // oh well, not much we can do at this point.
-        console.error('shut down Error!', er2.stack);
-      }
-    });
-
-//??
-
-    urDominion.once('startUp', function(){
-
-      urData.methods.importStores(urData);
-      urData.methods.importRoutes(urData);
-      urData.methods.importRender(urData);
-      if (urData.methods.verifySchema(urData)) {
-        if (process.env.C9_IP) {
-          srv = require('http');
-          app = srv.createServer(urDominion.bind(urCallback)); 
-        }
-        else {
-          srv = require('https');
-          app = srv.createServer(options, urDominion.bind(urCallback));
-        }
-        urData.domain.emit('unitTest', {'protocol': srv.globalAgent.protocol});
-        io = require('socket.io').listen(app);
-        io.on('connection', function(socket){
-            
-          // server (io) broadcasts connection, incoming message and disconnect
-          // urData changes should also be push out via the socket
-          var message =  {address: socket.conn.remoteAddress, 'connectDT': Date()};        
-//          io.emit('chat message', message);
-          while (urData.mtail.length > urData.options.mtailsize) urData.mtail.shift();
-          urData.mtail.push(message);
+    }  
+  };
   
+  urDomain.on('newListener', function(data){
+    urDomain.emit('test', {'add Listener':data});
+  });
+  urDomain.on('test', function(data){
+    if (urData.options.test) {
+      console.dir({time: new Date().toLocaleTimeString(), test: data});
+    }
+  });
+  urDomain.emit('newListener','newListener');
+  urDomain.emit('newListener','test');
+  urDomain.on('error', function(err) {
+    console.log(err.stack);      
+    urDomain.emit('shutDown');      
+  });
+  urDomain.on('removeListener', function(data){
+    urDomain.emit('test', {removeListener: data});
+  });
+  urDomain.on('request', function(data){
+    console.log('request', new Date().toLocaleTimeString(), data.IP, data.agent, '\n\t' + data.url);
+  });
+  urDomain.on('app', function(data){
+    console.log('app', new Date().toLocaleTimeString(), data);
+  });
+  urDomain.on('peerServer', function(data){
+    console.log('peerServer', new Date().toLocaleTimeString(), data);
+  });
+  urDomain.on('journal', function(data){
+    // must be journaled in order to replicate
+    console.log('journal', new Date(data.emitDate), data.senderAddress, (data.sender)?data.sender:'', data.message);
+  // TODO!! mark, commit, concur, verify as copied to each
+  });
+  urDomain.on('query', function(data){
+    console.dir({querytime: new Date().toLocaleTimeString(), query: data});
+  });
+  urDomain.on('shutDown', function() {
+    try {
+      if (urData.socket.emit) {
+        urData.socket.emit('chat message', {
+          sender: 'server', 
+          message: 'server shut down', 
+          emitDate: new Date() 
+        });
+      } 
+      var killtimer = setTimeout(function() {
+        urDomain.removeAllListeners();    
+        console.info('whozurdata is shut down');
+        process.exit(1);
+      }, 15000);  // set longer if needed
+      killtimer.unref();
+      if (app) {
+        app.close();
+      }  
+    } catch (er2) {
+      // oh well, not much we can do at this point.
+      console.error('[and yet another] error during shut down!', er2.stack);
+    }
+  });
+  urDomain.once('startUp', function() {
+    // flesh out object then open a socket
+    urData.methods.importStores(urData);
+    urData.methods.importRoutes(urData);
+    urData.methods.importRender(urData);
+  
+    if (urData.methods.verifySchema(urData)) {
+      if (srv.globalAgent.protocol.indexOf('https') === 0) {
+        app = srv.createServer(options, urDomain.bind(urCallback));
+      }
+      else {
+        app = srv.createServer(urDomain.bind(urCallback)); 
+      }
+      // eveything sharing one key and cert but doesn't HAVE to     
+      urData.io = require('socket.io').listen(app);
+//      p2pServer = require('socket.io-p2p-server').Server;
+
+// TODO! if the server needs to be a socket or a peer 
+//        urData.socket.id = new socket??;
+//        urData.p2p = require('socket.io-p2p'); // will throw "window is not defined" error
+//        urData.peer = new peer??;
+
+// socket.io-p2p http://socket.io/blog/socket-io-p2p/#more-738 7-14-15  
+//var p2p = new P2P(socket);
+//var p2pServer = require('socket.io-p2p-server').Server;
+
+var connectionUrl = '/chat';
+var nomspace = urData.io.of(connectionUrl);
+nomspace.on('connection', function(socket){
+  console.log(socket.id, 'connected');
+});
+nomspace.emit('hi', 'everyone!');
+
+
+        urData.io.on('connection', function(socket){
+          var connectMessage =  {
+            senderAddress: socket.client.conn.remoteAddress, 
+            socket: socket.id,
+            message: 'connect', 
+            emitDate: new Date() 
+          };        
           socket.on('chat message', function(message){
-            // msg needs to get date stamp when created
+// TODO!  encrypt this
+            var cmessage = {'cmessage': message};
             if (typeof message === 'string') {
               message =  {'message': message};
             } 
-            message.clientAddress =  socket.client.conn.remoteAddress;
-            message.broadcastDT = Date();
-// how to exclude sender's message.clientAddress? 
-            io.emit('chat message', message);
-            while (urData.mtail.length > urData.options.mtailsize) urData.mtail.shift();
-            urData.mtail.push(message);
-            urData.domain.emit('unitTest', message);
-//            console.log('chat', message);
-            // log to a db? which one is best for logging? should not be on node server for recoverability
+            // remote address as detected by server
+            message.senderAddress =  socket.client.conn.remoteAddress;
+            // msg gets date stamp when emitted 
+            if (!message.emitDate) {
+              message.emitDate = new Date();
+              message.postDated = true;
+            }             urData.domain.emit('journal', message);
+
+            // trim the recent history object array then append this message
+            while (urData.messageLog && urData.messageLog.length > urData.options.mtailsize) urData.messageLog.shift();
+            urData.messageLog.push(cmessage);
+            // TODO!  commit & concur each message as it is seen at the server 
+            
+            urData.io.sockets.emit('chat message', message);
+
+            // chat emits could emit into the domain and file system in this handler - then avoid both elsewhere   
+            // chat log is saved to urData.db and may be concurred elsewhere
+            urData.domain.emit('journal', message);
+            urData.io.sockets.emit('chat message', connectMessage);
           });
 
-          socket.on('object change', function(change){ 
-            // should I omit the originator or better to send everything to all? 
-
-console.log("socket's object change event has fired at server");
-            socket.broadcast.emit('object change', change);
+          socket.on('disconnect', function(data){
+            var disconnectMessage =  {senderAddress: socket.client.conn.remoteAddress, message: ['disconnect socket:', socket.id, data].join(' '), emitDate: new Date()};        
+            urData.domain.emit('journal', disconnectMessage);
+            urData.io.emit('chat message', disconnectMessage);
           });
 
-          socket.on('disconnect', function(){
-            urData.domain.emit('unitTest', 'disconnect');
-            var message =  {address: socket.conn.remoteAddress, 'disconnectDT': Date()};        
-            io.emit('chat message', message);
-            while (urData.mtail.length > urData.options.mtailsize) urData.mtail.shift();
-            urData.mtail.push(message);
+          urData.io.sockets.emit('chat message', connectMessage);
+          
+          socket.on('error', function (err) {
+            urData.domain.emit('error', err);
+console.log('@server.js io socket.on(error...', err.stack, '\n\ntake this out after you see socket escalate error into urDomain');
           });
 
-          urData.socket = socket;
-          urData.socket.emit('chat message', message);        
-
+          // attach server's socket to urData?
         });
 
         app.listen(urData.options.port);
@@ -191,26 +221,34 @@ console.log("socket's object change event has fired at server");
 
         module.export = urData;
 
-        urData.domain.emit('app', { 
+        urData.domain.emit('test', { 
           name: name, 
-          version:urData.version, 
+          version: urData.version, 
           protocol: srv.globalAgent.protocol,
           IPv4: urData.options.IP.toString(),
           port: urData.options.port,
           license: urData.license
         });
+        urData.domain.emit('app', ['listening for ', srv.globalAgent.protocol, 'requests at',
+                                   urData.options.IP.join(', '), 'on port ', urData.options.port].join(' '));
       }
     });
     // push your own buttons
-    urDominion.emit('startUp');
-  },1500);
+  setTimeout(function() {
+    urDomain.emit('startUp');
+  }, 500);
+
   process.on('uncaughtException', function(err){
-      console.log('uncaughtException', err.stack);
-      urDominion.emit('shutDown');
+    urDomain.emit('error', err);
   });
   process.on('exit', function(exitCode){
-    console.log('process exit code: ' + exitCode);
-    urDominion.emit('shutDown');
+    if (urDomain.listeners) {
+      urDomain.emit('shutDown');
+    }
+    else {
+      console.log(process.title);
+      console.log('process', process.title, '\nexit code:', exitCode);
+    }
   });
 });
 

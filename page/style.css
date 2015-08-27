@@ -3,50 +3,60 @@
 	width: device-width; // auto | device-width | length | percentage
 	orientation: auto; // auto | portrait | landscape
 }
-
-a {
-    text-decoration: none;
-}                 
-body {
-    display: flex;
-    flex-direction: column;
-    max-width: -webkit-fit-content;
-    max-width: fit-content;
-}
-fieldset {
-    font-family: sans-serif;
+form, fieldset {
+    font-family: monospace;
     font-variant: small-caps; 
+    display: flex;
+    flex-direction: row;
+}
+legend {
+    white-space: nowrap;
 }
 select {
-    font-size: large;
-}
-#store fieldset {
-    display: flex;
-    flex-direction: column;
-}
-#store select {
-    width: border-box;
-    width: available;
-    width: -webkit-fill-available;
-    padding: 4% 4%;
-}
-#resources select {
+    min-width: 12em;
+    max-width: 256px;
     width: available;
     width: -webkit-fill-available;
     margin: .5%;
     padding: 1%;
 }
-#query button {
+button {
     border-width: medium;
-    background: rgb(130, 224, 255); 
-    font-size: large;
+    color: #FFFFFF;
+    border-color: #00FF00;
+    background-color: #0000FF; 
+    font-weight: bold; 
 }
-#query button :active {
-    border-width: thick;
+.control select {
+    color: #FF0000;
+    border-color: #00FF00;
+    background-color: #0000FF; 
+    font-weight: bold; 
+}
+.control button {
+    color: #FF0000;
+}
+.send {
+    color: #FFFFFF;
+}
+#peerjs-serverIP {
+    width: fit-content;
+    width: -webkit-fit-content;
+}
+#peerjs-serverPort {
+    width: fit-content;
+    width: -webkit-fit-content;
+}
+#query frameset {
+    display: inline-flex;
+}
+#runner {
+    color: #00FF00;
 }
 #results {
     width: available;
     width: -webkit-fill-available;
+    overflow: auto;
     height:20%;
 }
 .resultRow {
@@ -54,25 +64,9 @@ select {
     border-width: thin;                       
 }
 .resultItem {
-    white-space: pre nowrap; 
+    white-space: pre-line; 
 }
-#chatform { 
-    display: flex;
-    flex-direction: column;
-}
-#mtail {
-    font-size: small;
-    width: available;
-    width: -webkit-fill-available;
-    background: rgb(235, 235, 235);
-    white-space: pre-line;
-}
-#m {
-    padding: 1%;
-    width: available;
-    width: -webkit-fill-available;
-}
-#chatform button { 
-    width: 10%; 
-    background: rgb(130, 224, 255); 
+.backdoor {
+    min-width: fit-content;
+    min-width: -webkit-fit-content;
 }
