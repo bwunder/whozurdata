@@ -36,7 +36,7 @@ var read = function (urData) {
       result.push(row);
     });
   }
-  urData.domain.emit('query', {db: urData.db, read: {stores: urData.request.query.names, keys: urData.request.query.keys}});
+//  urData.domain.emit('query', {db: urData.db, read: {stores: urData.request.query.names, keys: urData.request.query.keys}});
   return result;
 };
 
@@ -53,7 +53,7 @@ var upsertUrData = function (urData) {
   // datastamp'd filename
   var snapshotName = './snapshots/' + Date.now();  
   fs.writeFile(snapshotName, JSON.stringify(urData), function (data) {
-    urData.domain.emit('query', {db: name, snapshot: snapshotName});
+//    urData.domain.emit('query', {db: name, snapshot: snapshotName});
   });
 }; 
 
@@ -67,19 +67,19 @@ console.dir(files);
         
   }) 
 
-    urData.domain.emit('query', {db: name, readUrData: { source: name }});
+//    urData.domain.emit('query', {db: name, readUrData: { source: name }});
 }; 
 
 
 // insert a store
 // in scratch this means adding it to UrData.storeNames[] and UrData.stores[] in urData.js
 var insert = function (urData) {
-  urData.domain.emit('query', {db: name, insert: 'no-op'});
+//  urData.domain.emit('query', {db: name, insert: 'no-op'});
 };
 
 // scratch updates are made by edit of the module files
 var update = function (urData) {
-  urData.domain.emit('query', {db: name, update: 'no-op'});
+//  urData.domain.emit('query', {db: name, update: 'no-op'});
 };
 
 // a conditional no-op but shows the intent of an upsert in persistent stores
@@ -91,7 +91,7 @@ var upsert = function (urData) {
     else {
       insert(store);
     }
-    urData.domain.emit('query', {db: name, upsert: { store: store }});
+//    urData.domain.emit('query', {db: name, upsert: { store: store }});
   });
 };
 
@@ -102,12 +102,12 @@ var remove = function (urData) {
     if (urData.request.query.keys) {
       urData.keys.forEach( function(key) {
         urData.stores[store][key] = undefined;
-        urData.domain.emit('query', {db: name, remove: { store: name, key: key}});
+//        urData.domain.emit('query', {db: name, remove: { store: name, key: key}});
       });
     }
     else {
       urData.stores.splice(store);
-      urData.domain.emit('query', {db: name, remove: {store: store}});
+//      urData.domain.emit('query', {db: name, remove: {store: store}});
     }
   });
 };
@@ -116,7 +116,7 @@ var remove = function (urData) {
 // to verify runtime connectivity  - done at import during domain startup - see urData.js
 var getVersion = function () {
   module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version = module.parent.exports.version;
-  module.parent.exports.domain.emit('test', {'function': 'getVersion', store: name, 'return': module.parent.exports.version});
+//  module.parent.exports.domain.emit('test', {'function': 'getVersion', store: name, 'return': module.parent.exports.version});
 };
 
 var dvrVersion = function () {

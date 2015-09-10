@@ -26,7 +26,7 @@ var read = function (urData) {
 
 var insert = function (urData) {   
   db.insert().into('urData').set(urData).one().then(function (record) {
-    urData.domain.emit('query', {store: name, insert: record});
+//    urData.domain.emit('query', {store: name, insert: record});
   });
 };
 
@@ -61,8 +61,8 @@ var getVersion = function () {
         }
 //console.log('Found ' + records.length + ' records in ' + urClass.name);
         module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version = storeVersion; 
-        module.parent.exports.domain.emit('test', {'function': 'getVersion', store: name, 
-        storeVersion: module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version });
+//        module.parent.exports.domain.emit('test', {'function': 'getVersion', store: name, 
+//            storeVersion: module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version });
     });
   });
 };
@@ -92,7 +92,7 @@ var upsertUrData = function (urData) {
         storage: 'plocal'
       })
       .then(function (db) {
-        module.parent.exports.domain.emit('test', {'function': 'upsertUrData', store: name, createDb: options.urDatabase});
+//        module.parent.exports.domain.emit('test', {'function': 'upsertUrData', store: name, createDb: options.urDatabase});
       });
     }
     var db = server.use(options.urDatabase);
@@ -104,7 +104,7 @@ var upsertUrData = function (urData) {
       if (typeof cix === 'undefined') {
         db.class.create('urData')
         .then(function (urClass) {
-          module.parent.exports.domain.emit('test', {'function': 'upsertUrData', store: name, createClass: urClass});
+//          module.parent.exports.domain.emit('test', {'function': 'upsertUrData', store: name, createClass: urClass});
         });
       }
 // insert or update?
@@ -113,7 +113,7 @@ var upsertUrData = function (urData) {
       .then(function (urClass) {
         urClass.list()
         .then(function (records) {
-          module.parent.exports.domain.emit('test', {'function': 'upsertUrData', store: name, 'records': records});
+//          module.parent.exports.domain.emit('test', {'function': 'upsertUrData', store: name, 'records': records});
         });
       });
     });

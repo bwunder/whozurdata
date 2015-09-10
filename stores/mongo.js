@@ -35,7 +35,7 @@ var read = function (urData) {
       }  
       result = db.collection(options.collection).find(query, projection).toArray();
       db.close();
-      urData.domain.emit('query', {module: module.id, query: query, projection: projection, result: result});
+//      urData.domain.emit('query', {module: module.id, query: query, projection: projection, result: result});
     }
     return result;
   });
@@ -47,10 +47,10 @@ var insert = function (urData) {
     if (err) throw err;
     urData.stores.forEach( function (store) {
       db.collection(options.urCollection).insert([store], function(result) {
-        urData.domain.emit('query', {module: module.id, 
-                                     db: options.configDb, 
-                                     collection: options.configCollection, 
-                                     insert: urData});
+//        urData.domain.emit('query', {module: module.id, 
+//                                     db: options.configDb, 
+//                                     collection: options.configCollection, 
+//                                     insert: urData});
         return result;
       });
     });
@@ -64,10 +64,12 @@ var load = function (urData) {
     // should only ever be one doc in collection
     collection.find({}).toArray(function(err, docs) {
       if (err)  {
-        urData.domain.emit('error', err); 
+        throw(err);
+//        urData.domain.emit('error', err); 
       }
       if (docs.length > 1) {
-        urData.domain.emit('error', 'too many documents! count=' + docs.length);
+        throw('too many documents! count=' + docs.length);
+//        urData.domain.emit('error', 'too many documents! count=' + docs.length);
       }
       urData = docs[0];
     });      
@@ -84,7 +86,7 @@ var update = function (urData) {
       // read to emit a backup before image into log stream
       var options = {'upsert': false , 'multi': false };
       db.collection(options.collection).update(query, urData.store[s], options);
-      urData.domain.emit('query', {module: module.id, update: urData.stores[s]});
+//      urData.domain.emit('query', {module: module.id, update: urData.stores[s]});
       db.close();
     }
   });
@@ -96,7 +98,7 @@ var upsert = function (urData) {
       var query = {'names': store.name};
       var options = {'upsert': true , 'multi': false };
       db.collection(options.collection).update(query, store, options);
-      urData.domain.emit('query', {module: module.id, upsert: store});
+//      urData.domain.emit('query', {module: module.id, upsert: store});
     });
     db.close();
   });
@@ -114,7 +116,7 @@ else
       var query = {'names': store.name};
       var options = {justOne: true};
       db.collection(db.store.options.collection).remove(query, options);
-      urData.domain.emit('query', {module: module.id, query: query, options: options, remove: store});
+//      urData.domain.emit('query', {module: module.id, query: query, options: options, remove: store});
     }
     db.close();
     });  
@@ -125,7 +127,7 @@ var readUrData = function (urData) {
   MongoClient.connect(uri, function(db) {
     var result = db.collection('urData').findOne().toArray();
     db.close();
-    urData.domain.emit('query', {module: module.id, result: result});
+//    urData.domain.emit('query', {module: module.id, result: result});
     return result;
   });
 };
@@ -148,7 +150,7 @@ var getVersion = function() {
       if (err) throw err;
       db.close();
       module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version = info.version;
-      module.parent.exports.domain.emit('test', {'function': 'getVersion', store: name, 'result': info.version});
+//      module.parent.exports.domain.emit('test', {'function': 'getVersion', store: name, 'result': info.version});
     });
   });
 };
