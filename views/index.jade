@@ -1,0 +1,18 @@
+extends ./layout.jade
+
+block head
+    meta(name="viewport" content="width=device-width")
+    title= title
+    link(rel="stylesheet", href="/stylesheets/style.css")
+
+block content
+    block confab
+        include ./confab.jade 
+    block catalog
+        include ./store.jade 
+        block resources
+            include ./resources.jade 
+    block query
+        include ./query.jade 
+    script
+        include ../public/javascripts/body.js

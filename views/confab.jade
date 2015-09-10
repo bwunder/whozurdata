@@ -1,0 +1,20 @@
+form#chatform(method="GET", action="/")
+    fieldset 
+        legend confab
+        button(type="button", title="resize", onClick="resize(this)") &plusmn;
+        button(type="button", title="disconnect", onClick="disconnect(this)") &empty;
+        div#rtcModes
+            each mode in ['text','audio','video','whiteboard','share screen']
+                input(name="!{mode}", type="checkbox", onchange="toggle(this)")
+                | !{mode} 
+        | available sockets
+        div#socketList #{socketList}        
+        if messages
+            div.messages(onchange="rollUp()")                    
+                ol
+                    each message in messages
+                        li = message
+        label nickname
+            input#nickname(name="nickname", placeholder="use !{app.data.options.IP}")
+        textarea#m(name="m", wrap="soft", placeholder="your message here")
+        button.send(type="button", onclick="sendMsg()") Send

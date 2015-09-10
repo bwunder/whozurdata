@@ -1,0 +1,6 @@
+form#chatform(method="GET", action="/")
+    fieldset 
+        legend data store
+        select#db(name="db", onchange="submit()", title="source of urData", required)
+            datalist.dbChoices
+
