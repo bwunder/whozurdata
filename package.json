@@ -18,7 +18,7 @@
     "url": "git@github.com:bwunder/whozurdata.git"
   },
   "scripts": {
-    "backup": "rsync -av --progress $HOME/workspace $HOME/backup --ignore-existing --delete-during --exclude demoCA/ --exclude node_modules/ --exclude v3/ --exclude .c9/",
+    "backup": "rsync -av --progress $HOME/workspace $HOME/backup --delete --exclude demoCA/ --exclude node_modules/ --exclude v3/ --exclude .c9/ --exclude .git",
     "prestart": "./scripts/prestart.sh",
     "start": "node ./bin/www"
   },
