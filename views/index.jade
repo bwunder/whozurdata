@@ -1,18 +1,27 @@
 extends ./layout.jade
+include ./mixins.jade
 
 block head
-    meta(name="viewport" content="width=device-width")
-    title= title
-    link(rel="stylesheet", href="/stylesheets/style.css")
+    include ./head.jade
 
 block content
-    block confab
-        include ./confab.jade 
-    block catalog
-        include ./store.jade 
-        block resources
-            include ./resources.jade 
-    block query
-        include ./query.jade 
+    div#portal
+        block store
+            include ./store.jade
+        block buffers
+            include ./buffers.jade
+        block files
+            include ./files.jade
+        block data
+            include ./data.jade 
+        block notice
+            include ./notify.jade 
+    div#response 
+        block response
+            include ./response.jade 
+    script
+        include ../public/javascripts/adapter.js
+    script
+        include ../public/javascripts/bundle.js
     script
         include ../public/javascripts/body.js

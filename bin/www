@@ -1,19 +1,20 @@
-#!/usr/bin/env node
-
-/**
- * Module dependencies.
- */
-
 var app = require('../app');
-var debug = require('debug')('whozurdata:server');
 var fs = require('fs');
 var https = require('https');
+var socketio = require('socket.io');
+var p2p = require('socket.io-p2p-server');
+var debug = require('debug')('*'); 
+
+/**
+ * HTTPS server certificate options
+ * see prestart.sh
+ */
 var options = { key: fs.readFileSync('newkey.pem'), 
                 cert: fs.readFileSync('newcert.pem'),
                 passphrase: 'test'};
 
 /**
- * Get port from environment and store in Express.
+ * Get port from environment, if is one, and store in Express.
  */
 
 var port = normalizePort(process.env.PORT || '3000');
@@ -23,15 +24,25 @@ app.set('port', port);
  * Create HTTPS server.
  */
 
+// tls... instead of var server = http.createServer(app);
 var server = https.createServer(options, app);
+var io = socketio(server); 
+// peer to peer coordination among currently active sockets
+var p2pserver = p2p.Server;
+io.use(p2pserver);
 
 /**
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+server.listen(port);
+
+/**
+ * socket.io handler
+ */
+
 
 /**
  * Normalize a port into a number, string, or false.
@@ -90,5 +101,6 @@ function onListening() {
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+debug('Listening on ' + bind + '\n' +
+      'debugger output includes namespace ' + debug.namespace);
 }

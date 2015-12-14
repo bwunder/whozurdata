@@ -1,0 +1,28 @@
+div.view(name="data")
+    form#query-form(method="GET", action="/query")
+        fieldset 
+            +toggle("data", ["Run queries stored at node server targeting the data stored in urData.stores.", urData.db ,".engine"].join(" "))
+            select#proc(name="proc" required)
+                option(value="" selected disabled) query function
+                for query in Object.keys(urData.stores[urData.db].query)
+                    option= query
+            span
+                table#params
+                    tr
+                        td.top 
+                            span.small params 
+                        td
+                            select.param(name="names" multiple)
+                                option(value="" selected) all stores
+                                for name in Object.keys(urData.stores)
+                                    option= name
+                        td
+                            select.param(name="keys" multiple)
+                                option(value="" selected) all keys
+                                for key in Object.keys(urData.stores[urData.db])
+                                    option= key
+            span 
+                button(type="reset") reset
+                span.right            
+                    button(type="submit") <u>e</u>xec 
+                        span.green &#x25BA

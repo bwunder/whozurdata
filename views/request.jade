@@ -1,0 +1,11 @@
+- var rqHelp= "Server reply to web request"
+-     rqHelp+= "\n\tIP\t:" + request.IP.replace("::ffff:","")
+-     rqHelp+= "\n\tpath\t:" + request.path
+-     rqHelp+= "\n\tquery\t:" + JSON.stringify(request.query)
+div.view(name="request")
+    fieldset 
+        +toggle("request", "Most recent request")
+        table
+            tr
+                td#querystring 
+                    +toMarkup(request)

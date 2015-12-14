@@ -1,6 +1,8 @@
-// very low usage frequencies so close connection at end of each task
-var name = require('path').basename(module.filename, '.js'),
-    mongoDb = require('mongodb'),
+var debug = require('debug')('*');
+var name = require('path').basename(module.filename, '.js');
+// dependencies
+var mongoDb = require('mongodb'),
+    assert = require('assert'),
     options = {
       server: process.env.IP || 'localhost',
       port: 27017,
@@ -34,9 +36,8 @@ var read = function (urData) {
         projection[urData.keys[i]] = 1;  
       }  
       result = db.collection(options.collection).find(query, projection).toArray();
-      db.close();
-//      urData.domain.emit('query', {module: module.id, query: query, projection: projection, result: result});
     }
+    db.close();
     return result;
   });
 };  
@@ -44,34 +45,24 @@ var read = function (urData) {
 // 
 var insert = function (urData) {  
   MongoClient.connect(uri, function(err, db) {
-    if (err) throw err;
+    assert.equal(null, err);
     urData.stores.forEach( function (store) {
       db.collection(options.urCollection).insert([store], function(result) {
-//        urData.domain.emit('query', {module: module.id, 
-//                                     db: options.configDb, 
-//                                     collection: options.configCollection, 
-//                                     insert: urData});
         return result;
       });
     });
   });
 };  
 
-var load = function (urData) {
+var load = function () {
   MongoClient.connect(uri, function(err, db) {
-    if (err) throw err;
+    assert.equal(null, err);
     var collection = db.collection(options.urCollection);
-    // should only ever be one doc in collection
+    // return a unique doc from the collection 
     collection.find({}).toArray(function(err, docs) {
-      if (err)  {
-        throw(err);
-//        urData.domain.emit('error', err); 
-      }
-      if (docs.length > 1) {
-        throw('too many documents! count=' + docs.length);
-//        urData.domain.emit('error', 'too many documents! count=' + docs.length);
-      }
-      urData = docs[0];
+      assert.equal(null, err);
+      assert.ok(docs.length===1); 
+      docs[0];
     });      
   });
 };  
@@ -86,7 +77,6 @@ var update = function (urData) {
       // read to emit a backup before image into log stream
       var options = {'upsert': false , 'multi': false };
       db.collection(options.collection).update(query, urData.store[s], options);
-//      urData.domain.emit('query', {module: module.id, update: urData.stores[s]});
       db.close();
     }
   });
@@ -98,7 +88,6 @@ var upsert = function (urData) {
       var query = {'names': store.name};
       var options = {'upsert': true , 'multi': false };
       db.collection(options.collection).update(query, store, options);
-//      urData.domain.emit('query', {module: module.id, upsert: store});
     });
     db.close();
   });
@@ -116,18 +105,16 @@ else
       var query = {'names': store.name};
       var options = {justOne: true};
       db.collection(db.store.options.collection).remove(query, options);
-//      urData.domain.emit('query', {module: module.id, query: query, options: options, remove: store});
     }
     db.close();
     });  
   }
 };  
 
-var readUrData = function (urData) {
+var readUrData = function () {
   MongoClient.connect(uri, function(db) {
     var result = db.collection('urData').findOne().toArray();
     db.close();
-//    urData.domain.emit('query', {module: module.id, result: result});
     return result;
   });
 };
@@ -142,43 +129,40 @@ var upsertUrData = function (urData) {
     });
 };  
 
-var getVersion = function() {
+var getEngineVersion = function() {
   MongoClient.connect(uri, function(err, db) {
-    if (err) throw err;
+    assert.equal(null, err);
     var adminDb = db.admin();
+    // Retrive the build information for the MongoDB instance
     adminDb.buildInfo(function(err, info) {
-      if (err) throw err;
+      assert.equal(null, err);
+      assert.ok(info);
       db.close();
-      module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version = info.version;
-//      module.parent.exports.domain.emit('test', {'function': 'getVersion', store: name, 'result': info.version});
+      debug('mongoClient admin.info.version', info.version);
     });
   });
+}
+
+var getDriverVersion = function() {
+// how about a function to get the driver versions in udData?
+// or build a file of versions in prestart shell script? 
+// a list of versions for all top level node_modules
+  return mongoDb.version;
 };
-/* try this - see if it works with the intercep
-  MongoClient.connect(uri, function(db) {
-    var adminDb = db.admin();
-    adminDb.buildInfo(function(info) {
-      db.close();
-      module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version = info.version;
-      module.parent.exports.domain.emit('test', {'function': 'getVersion', store: name, 'result': info.version});
-    });
-  });
-};
-*/
-module.exports = {
-  name: name,
-  moduleId: module.id,
-  store: { 
+
+var store = {
+  engine: { 
     project: 'MongoDb',
     version: undefined,
-    setVersion: getVersion
+    getEngineVersion: getEngineVersion
   },    
   driver: {
     project: 'mongodb',
-    version: mongoDb.version
+    version: undefined,
+    getDriverVersion: getDriverVersion
   },   
   options: options,
-  queries: {
+  query: {
     read: read,
     log: insert,  
     upsert: upsert,  
@@ -187,13 +171,14 @@ module.exports = {
     readUrData: readUrData    
   },
   docs: {
-    store: 'http://docs.mongodb.org/manual',
+    engine: 'http://docs.mongodb.org/manual',
     driver: 'http://mongodb.github.io/node-mongodb-native/2.0', 
     BSON: 'http://bsonspec.org/'
   }, 
   source: [  
-    {store: 'http://www.mongodb.org/about/source-code'},
+    {engine: 'http://www.mongodb.org/about/source-code'},
     {driver: 'http://mongodb.github.io/node-mongodb-native'}
-  ]  
+  ]
 }; 
 
+module.exports = exports = store;

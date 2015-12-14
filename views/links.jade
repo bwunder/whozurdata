@@ -1,0 +1,10 @@
+fieldset#links
+    legend www links 
+    select(name="docs", onchange="window.open(this.value, this.name)", title="docs", accesskey="L")
+        option(selected disabled) documentation                
+        each doc in Object.keys(urData.stores[urData.db].docs) 
+            option(label="#{doc}")= urData.stores[urData.db].docs[doc]
+    select(name="source", onchange="window.open(this.value, this.name)" title="source", accesskey="S")
+        option(selected disabled) source code      
+        each repo in urData.stores[urData.db].source 
+            option(label="#{Object.keys(repo)[0]}")= repo[Object.keys(repo)[0]]

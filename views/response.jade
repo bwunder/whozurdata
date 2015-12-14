@@ -1,0 +1,23 @@
+- var request= "Server reply to web request"
+-     request+= "\n\tIP\t:" + inquiry.IP.replace("::ffff:","")
+-     request+= "\n\tpath\t:" + inquiry.path
+-     request+= "\n\tquery\t:" + JSON.stringify(inquiry.query)
+div.view(name="response")
+    fieldset 
+        +toggle("response", request)
+        table#result
+            if typeof reply!='object'
+                tr: td: +toCell(reply)
+            else if Array.isArray(reply)
+                each element, index in reply
+                    tr: td.top: span.red= index===0? "[": "" 
+                        td: +toMarkup(element)  
+                        td.bottom: span.red= reply.length - 1=== index? "]": ","
+            else
+                - var urKeys= Object.keys(reply)
+                each attrib, index in reply
+                    tr: td.top: span.red= urKeys[0]===index? "{": "" 
+                        td.top: span.small= index 
+                        td.top: span.red= ":"
+                        td: +toMarkup(attrib) 
+                        td.bottom: span.red= urKeys[urKeys.length - 1]===index? "}":","

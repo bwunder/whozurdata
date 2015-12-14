@@ -1,0 +1,23 @@
+//- some ids and "lname" from socket.io-p2p-master
+div.view(name="notify")
+    form#msg-form(method="GET", action="#")
+        fieldset 
+            +toggle("notify","message board and web socket events available to all connections to this node server")
+            select#network(name="network" onchange="alert('all vapor-ware, but happy to flesh out if its worth it to someone :) Just grab my email from package.json.'); this.value='';")
+                option(value="" selected disabled) private conversations
+                option(label="nad-nhocker - ad hoc data encrypt/decode text messaging - shared cetificate required")
+                option(label="nad-mhasher - multi-node self-meshing nad-nhocker - certificates from common CA req\'d")
+                option(label="nad-shocker - socket.io nad-nhocker - certificates from common CA req\'d")
+                option(label="socket.io-chat - npm package to use this node server\'s tls clients")
+                option(label="chat-anarchy - npm package dynamic path chat rooms, host by this socket server")
+                option(label="socket.io-p2p - npm package WebRTC peer to peer multimedia data channels mediated by this socket server")
+            span#upgrade-msg
+            span.small add a note
+            textarea#msg-box(wrap="soft" onfocus="toggle(this)")
+            span 
+                button.submit(type="submit") send
+            span.small recent notices 
+            div#msg-view
+                ul#msg-list
+                
+      

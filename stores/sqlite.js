@@ -1,4 +1,5 @@
 var name = require('path').basename(module.filename, '.js');
+// dependencies
 var sqlite = require('sqlite3');
 var dbfile = "./data/whozurdata.sqlite"; // also supports ":memory:"
 
@@ -50,30 +51,29 @@ var upsert = function (store) {
 var remove = function (name) { 
 };
 
-var getVersion = function () {
+var getEngineVersion = function () {
   return '?';  
 };
 
-var dvrVersion = function () {
-  return '??';  
+var getDriverVersion = function () {
+  return sqlite.VERSION;  
 };
 
-module.exports = {
-  name: name,
-  moduleId: module.id,
-  store: {
+var store = {
+  engine: {
     project: 'SQLite',
     version: undefined,
-    setVersion: getVersion
+    getEngineVersion: getEngineVersion
   },
   driver: {
-    project: 'node',
-    version: dvrVersion()
+    project: 'sqlite3',
+    version: undefined,
+    getDriverVersion: getDriverVersion
   },
   options: {
     dbfile: dbfile
   },
-  queries: {
+  query: {
     read: read,
     log: insert,
     upsert: upsert,
@@ -82,14 +82,17 @@ module.exports = {
     readUrData: readUrData
   },
   docs: {
-    store: "https://sqlite.org",
+    engine: "https://sqlite.org",
     driver: "http://github.com/mapbox/node-sqlite3"
   },
   source: [
-    {store: "http://system.data.sqlite.org/index.html/tree?ci=trunk"},
+    {engine: "http://system.data.sqlite.org/index.html/tree?ci=trunk"},
     {driver: "http://github.com/mapbox/node-sqlite3"}
   ]
 }; 
+
+module.exports = exports = store;
+
 
 /*
     read: read,               // name(s) optional, column(s) optional
@@ -107,3 +110,4 @@ module.exports = {
     upsert: upsert,                      
     delete: delete // "DELETE store WHERE name = '?'"
 */
+

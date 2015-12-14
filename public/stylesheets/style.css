@@ -1,72 +1,156 @@
-
-@viewport {
-	width: device-width; // auto | device-width | length | percentage
-	orientation: auto; // auto | portrait | landscape
-}
-form, fieldset {
-    font-family: monospace;
-    font-variant: small-caps; 
+body {
     display: flex;
-    flex-direction: row;
-}
-legend {
-    white-space: nowrap;
-}
-select {
-    min-width: 12em;
-    max-width: 256px;
-    width: available;
-    width: -webkit-fill-available;
-    margin: .5%;
-    padding: 1%;
+    flex-flow: row wrap;
 }
 button {
+    font: icon;
     border-width: medium;
-    color: #FFFFFF;
-    border-color: #00FF00;
-    background-color: #0000FF; 
+    color: gold;
+    border-color: gold;
+    background-color: blue; 
     font-weight: bold; 
 }
-.control select {
-    color: #FF0000;
-    border-color: #00FF00;
-    background-color: #0000FF; 
-    font-weight: bold; 
+legend {
+    font-family: serif;
+    font-variant: small-caps;
+    font-size: small;
+    font-weight: bold;
 }
-.control button {
-    color: #FF0000;
-}
-.send {
-    color: #FFFFFF;
-}
-#peerjs-serverIP {
+select {
+    font-family: monospace;
+    font-size: small;
+    box-sizing: border-box; 
     width: fit-content;
+    width: -moz-fit-content;
     width: -webkit-fit-content;
+    border-radius: 400%/100%;
 }
-#peerjs-serverPort {
-    width: fit-content;
-    width: -webkit-fit-content;
+table {
+    border-collapse: collapse;
 }
-#query frameset {
-    display: inline-flex;
-}
-#runner {
-    color: #00FF00;
-}
-#results {
-    width: available;
-    width: -webkit-fill-available;
+textarea {
     overflow: auto;
-    height:20%;
 }
-.resultRow {
-    border-style: dotted;
-    border-width: thin;                       
+#cwd {
+    max-width: 16em;
 }
-.resultItem {
-    white-space: pre-line; 
+#db-form {
+    margin: 0 auto;
 }
-.backdoor {
+#hotwire {
+    line-height: 1.5em;
+}
+#msg-list {
+    list-style: none;    
+}
+#msg-view {
+    display: flex;
+    flex-flow: column;
+    overflow: auto;
+    width: 100%;
+    max-width: 320px;
+    max-height: 5em;
+}    
+#network {
+    max-width: 16em;
+}
+#portal {
+    display: flex;
+    flex-flow: column;
+    overflow: auto;
     min-width: fit-content;
+    min-width: -moz-fit-content;
     min-width: -webkit-fit-content;
+    width: 320px;
+    max-width: 320px;
+    height: 100%;
+}
+#querystring {
+    font-size: small;
+    font-style: italic;
+    color: gray;
+}
+#response {
+    display: flex;
+    flex-flow: column;
+    overflow: auto;
+    min-width: fit-content;
+    min-width: -moz-fit-content;
+    min-width: -webkit-fit-content;
+    width: 320px;
+    max-width: 100%;
+    height: 100%;
+}
+.blue {
+    color: #0000FF;
+}
+.bottom {
+    left: 0;
+    vertical-align: bottom;
+}
+.center {
+    margin: 0 auto;
+    text-align: center;
+    vertical-align: middle;
+}
+.doc {
+    border: thin solid brown;
+    border-radius: 4px 3px 6px / 2px 4px;;
+    color: brown;
+    background-color: gold;
+}
+.gray {
+    color: #666666;
+}
+.green {
+    color: #00CC00;
+}
+.nowrap {
+    white-space: nowrap;
+}
+.param {
+    border-radius: 0;
+}
+.red {
+    color: #FF0000;
+} 
+.right {
+    float: right;
+}
+.small {
+    font-family: monospace;
+    font-size: smaller;
+}
+.source {
+    font-weight: normal; 
+    font-size: small;
+    border: thin solid brown;
+    border-radius: 10px;
+    color: brown;
+    background-color: gold;
+}
+.toggleView {
+    font-size: smaller;
+    border: thin solid brown;
+    border-radius: 400%/100%;
+    color: brown;
+    background-color: gold;
+}
+.top {
+    left: 0;
+    vertical-align: text-top;
+}
+.view {
+    display: flex;
+    flex-flow: column;
+    overflow: hidden;
+    min-width: fit-content;
+    min-width: -moz-fit-content;
+    min-width: -webkit-fit-content;
+    line-height: 1.4em;
+    
+}
+.view>fieldset, .view>form, .view>form>fieldset  {
+    display: flex;
+    flex-flow: column;
 }

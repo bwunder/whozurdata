@@ -1,14 +1,22 @@
-whozurdata v0.0.3
+whozurdata v0.0.4
 ===
 
 ---
-* query broker 
-* semi-structured data storage middleware 
-* ACID to BASE in alignment with target stores 
-+ supports any data store with a driver package at npmjs.org
-* conformed javascript named query API
+* interstitial data storage middleware 
+* NOSE stack (Node, Open Data, Socket.io, Express) 
+* urData object - config and stored query meta-object  
 
-"The bedrock of every data rich user experience! I dig it!" - Fred [brontosaurus operator]   
+NOSE
++ seemless interation of any data targets
++ requires no 
++ superset of LAMP and MEAN stacks
++ supports ACID and BASE concurrency models 
+* interstitial run-time data repli-grator
++ integrate any data store 
+* conformed javascript named query API 
+
+"The bedrock of every data rich user experience! I dig it!" - Fred [local brontosaurus operator]   
+"Its Uge, just install it and it will be tremendous!" - Don [very rich guy]
 ---
 
 ### What's it do?
@@ -16,14 +24,6 @@ whozurdata v0.0.3
 
 
 ### How's it work?
-* a node server's EVENTs are bound to a shared connection object through a domain
-* the domain should contain exactly 1 data set that is EVENTually replicated across the stores in the domain     
-// domain resources can be visible but should remain read-only outside the context of this app 
-// other apps consume connection metadata through an array of data stores at the node server 
-* each query can target the best available storage engine for the request
-// with the intention that those apps can use any connection in the array using the same code on a per query basis  
-// a store consists of a local module that imports a packaged driver from npmjs.org  
-// the driver requires an active storage engine adequately accessible to a node server    
 
 
 

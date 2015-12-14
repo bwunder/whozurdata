@@ -1,0 +1,22 @@
+- console.log('files.jade cur', cur)
+- console.log('files.jade cwd', cwd)
+div.view(name="files")
+    form#files-form(method="GET" action="/files")
+        fieldset 
+            +toggle("files", "Browse the node server\'s file system")
+            span.small cwd:
+                span #{cwd}
+            select#cwd(name="cur" onchange="submit()")
+                option(label="files" value="" selected disabled)
+                if cur!="/"     
+                    option(label="/    (root)" value="/")
+                    option(label="..   (up)" value="#{cwd.substr(0, cwd.lastIndexOf('/'))}")
+                option(label=".   (refresh)" value="#{cwd}")
+                optgroup(label="sub-directories")
+                    if dirs
+                        each dir in dirs
+                            option.dir(label="#{dir}" value="#{cwd}#{cwd==='/'?'':'/'}#{dir}")
+                optgroup(label="files")
+                    if files    
+                        each file in files
+                            option.file(label="#{file}" value="#{cwd}#{cwd==='/'?'':'/'}#{file}")

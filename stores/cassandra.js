@@ -1,6 +1,7 @@
+var name = require('path').basename(module.filename, '.js');
+//dependencies
 var cql = require('node-cassandra-cql');
 var util = require('util');
-var name = require('path').basename(module.filename, '.js');
 
 // Cassandra cluster details
 var hostArray = ["127.0.0.1:9042"];
@@ -23,13 +24,13 @@ var callback = function (err, result) {
 var upsertUrData = function (urData) {
     
     
-  urData.domain.emit('query', {db: name, upsertUrData: { target: name }});
 }; 
 
 var readUrData = function (urData) {
-  
+  //init urdata obj
+  client.execute("SELECT * FROM urData", callback);
+  // 
 
-  urData.domain.emit('query', {db: name, readUrData: { source: name }});
 }; 
 
 
@@ -37,7 +38,7 @@ function getOptions (store) {
   client.execute("SELECT * FROM stores WHERE name = ?", [store.name], callback);
 }
 
-function readAll (store) {
+function read (store) {
 //  client.execute( ["SELECT name, WRITETIME(name),",
 //                     "filename, WRITETIME(filename),",
 //                     "options[0].hosts, WRITETIME(options[0].hosts),",
@@ -55,7 +56,7 @@ function insert (store) {
   else each in own keyspace (and options hierarchy unwound until max 2-deep).
 */  
   var options = {};
-  var queries = {};
+  var query = {};
   for (var i in store.options) {
 
 
@@ -69,13 +70,11 @@ function insert (store) {
     function (key) {
       var test = {};
       test[key] = util.inspect(store.options[key]);
-util.log(util.inspect(test));
       options[test[0]] = test;
   //    options[key] = util.inspect(store.options[key]);
     });
-util.log(util.inspect(options));
   return client.execute(["INSERT INTO stores",
-                           "(name, docs, driver, filename, options, queries, source)",
+                           "(name, docs, driver, filename, options, query, source)",
                            "VALUES (?, ?, ?, ?, ?, ?, ?)",
                            "IF NOT EXISTS USING TTL 600"].join(" "),
                          [{hint: 'text', value: store.name},
@@ -83,7 +82,7 @@ util.log(util.inspect(options));
                            {hint: 'text', value: store.driver},
                            {hint: 'text', value: store.filename},
                            {hint: 'map', value: options},
-                           {hint: 'map', value: queries},
+                           {hint: 'map', value: query},
                            {hint: 'map', value: store.source}],
                          callback);
 }
@@ -99,13 +98,13 @@ function updateOptions (store) {
 function upsert (store) {
   return client.execute(["UPDATE stores",
                            "SET docs = ?, driver = ?, filename = ?,",
-                             "options = ?, queries = ?, source = ?",
+                             "options = ?, query = ?, source = ?",
                            "WHERE name = ?"].join(" "),
                          [{value: store.docs, hint: 'map'} ,
                            {value: store.driver, hint: 'text'},
                            {value: store.filename, hint: 'text'},
                            {value: store.options, hint: 'map'},
-                           {value: store.queries, hint: 'map'},
+                           {value: store.query, hint: 'map'},
                            {value: store.source, hint: 'map'},
                            {value: store.name}],
                          callback);
@@ -117,35 +116,31 @@ function del (store) {
                          callback);
 }
 
-var getVersion = function () {
+var getEngineVersion = function () {
   return '?';  
 };
 
-var dvrVersion = function () {
+var getDriverVersion = function () {
   return '??';  
 };
 
-module.exports= {
-  name: name,
-  moduleId: module.id,
-  store: {
+var store = {
+  engine: {
     project: 'Cassandra',
     version: undefined,
-    setVersion: getVersion
+    getEngineVersion: getEngineVersion
   },
   driver: {
-    project: 'node',
-    version: dvrVersion()
+    project: 'node-cassandra-cql',
+    version: undefined,
+    getDriverVersion: getDriverVersion
   },
   options: {
     hosts: hostArray,
     keyspace: keyspace
   },
-  queries: {
-
-//    getOne: getOptions,
-
-    read: readAll,  // rename functions to standard
+  query: {
+    read: read,  
     log: insert,
     upsert: upsert,
     remove: del,
@@ -153,28 +148,51 @@ module.exports= {
     readUrData: readUrData 
   },
   docs: {
-    store: "https://cassandra.apache.org",
+    engine: "https://cassandra.apache.org",
     driver: "https://github.com/jorgebay/node-cassandra-cql",
     cql: "http://www.datastax.com/documentation/cql/3.1/cql/cql_intro_c.html"
   },
   source: [
-    {store: "https://cassandra.apache.org/download/"},
-    {driver: "https://github.com/jorgebay/node-cassandra-cql"}
+    { engine: "https://cassandra.apache.org/download/" },
+    { driver: "https://github.com/jorgebay/node-cassandra-cql" }
   ]
-}
+};
+  
+module.exports = exports = store;
 
 /*
 Connected to Test Cluster at localhost:9160.
 [cqlsh 4.1.1 | Cassandra 2.0.7 | CQL spec 3.1.1 | Thrift protocol 19.39.0]
 Use HELP for help.
 cqlsh> use test;
+cqlsh:test> CREATE TABLE urData (
+  db text,                      
+  config map<text text>,
+  methods: { 
+    verifySchema: verifySchema,        // objects fixed schema key integrity is intact
+    getServerIPV4s: getServerIPV4s,    // local IPs where node server is listening for web requests 
+    load: load,                        // object load from urData.db
+    shoot: shoot,                      // serialize utData buffer object to new file in __dirname+'/snapshots' folder 
+    reload: reload,                    // object load from a specified snapshot
+    commit: commit,                    // buffer object save to urData.db - for scratch is a snapshot
+    concur: concur,                    // syncronize object using specified master, version as distributed
+    close: close                       // remove a store from the buffer object  
+  },
+  license: 'MIT',                      // full text in license.txt
+  version: '0.0.4',
+  
+  ...             docs map<text, text>,
+        ...             driver map<text, text>,
+        ...             options map<text, text>,
+        ...             query map<text, text>,
+        ...             source map<text, text>,
+        ...             PRIMARY KEY (name));
 cqlsh:test> CREATE TABLE stores (
         ...             name text,
         ...             docs map<text, text>,
-        ...             driver text,
-        ...             filename text,
+        ...             driver map<text, text>,
         ...             options map<text, text>,
-        ...             queries map<text, text>,
+        ...             query map<text, text>,
         ...             source map<text, text>,
         ...             PRIMARY KEY (name));
 cqlsh:test>  

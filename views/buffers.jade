@@ -1,0 +1,18 @@
+div.view(name="buffers")
+    form#buffers-form(method="GET" action="/buffers")
+        fieldset 
+            +toggle("buffers","View the urData object now in node server's primary storage (RAM)")
+            select(name="attribute" onchange="submit()")
+                option(value="" selected disabled label="namespace")
+                option urData
+                optgroup(label="attributes")
+                    each attribute in Object.keys(urData)
+                        option #{attribute}
+                option bootstrap
+            select(name="property" onchange="submit()")
+                option(value="" selected disabled label="selected store")
+                option store
+                optgroup(label="properties")
+                    each property in Object.keys(urData.stores[urData.db])
+                        option #{property}
+                option bootstrap

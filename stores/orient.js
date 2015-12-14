@@ -1,5 +1,6 @@
+var name = require('path').basename(module.filename, '.js');
+// dependencies
 var oriento = require('oriento'),
-    name = require('path').basename(module.filename, '.js'),
     options = { forOpen: {host: 'localhost',
                           port: 2424,
                           username: 'orientdb',
@@ -7,7 +8,6 @@ var oriento = require('oriento'),
                 urDatabase: 'whozurdata',
                 urClass: 'urData'
     },
-    storeVersion = '2.0-rc2',  // not in API so using a manually maintained - by you! - hardcoded value.
     dependsVersion = JSON.parse(require('fs').readFileSync('./package.json','UTF8')).dependencies['orientdb'],
     server = oriento(options.forOpen),
     db = server.use(options.urDatabase); 
@@ -39,34 +39,6 @@ var upsert = function (newstores) {
 var remove = function (names, keys) { 
 };
 
-// no version thru API but we connect now anyway 
-// to make sure everything is ready before giving back
-// a hardwired version obtained from orientdb console
-var getVersion = function () {
-  // start with the version in package and then use module storeVersion if urData class opens
-  module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version = dependsVersion; 
-
-  db.class.get(options.urClass)
-    .then(function (urClass) {
-      urClass.list()
-      .then(function (records) {
-        if (records.length > 1) {
-         
-         
-         
-         
-         
-         
-          
-        }
-//console.log('Found ' + records.length + ' records in ' + urClass.name);
-        module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version = storeVersion; 
-//        module.parent.exports.domain.emit('test', {'function': 'getVersion', store: name, 
-//            storeVersion: module.parent.exports.stores[module.parent.exports.storeNames.indexOf(name)].store.version });
-    });
-  });
-};
-
 var readUrData = function () {
   db.class.get(options.urClass)
     .then(function (urClass) {
@@ -78,7 +50,7 @@ var readUrData = function () {
   });
 };
 
-var upsertUrData = function (urData) {
+var upsertUrData = function () {
   var dbix, cix;
   server.list()
   .then(function (dbs) {
@@ -104,7 +76,6 @@ var upsertUrData = function (urData) {
       if (typeof cix === 'undefined') {
         db.class.create('urData')
         .then(function (urClass) {
-//          module.parent.exports.domain.emit('test', {'function': 'upsertUrData', store: name, createClass: urClass});
         });
       }
 // insert or update?
@@ -113,40 +84,53 @@ var upsertUrData = function (urData) {
       .then(function (urClass) {
         urClass.list()
         .then(function (records) {
-//          module.parent.exports.domain.emit('test', {'function': 'upsertUrData', store: name, 'records': records});
         });
       });
     });
   });
 };
 
-module.exports = {
-  name: name,
-  moduleId: module.id,
-  store: { 
-    project: 'OrientDb',
-    version: undefined,
-    setVersion: getVersion
-  },    
-  driver: {
-    project: 'oriento',
-    version: oriento.version
-  },   
-  options: options,
-  queries: {
-    read: read,
-    log: insert,
-    upsert: upsert,
-    remove: remove,
-    upsertUrData: upsertUrData,
-    readUrData: readUrData
-  },
-  docs: {
-    store: 'http://orientdb.com/docs/last/index.html',
-    driver: 'https://github.com/codemix/oriento'
-  }, 
-  source: [  
-    { store: 'https://github.com/orientechnologies/orientdb' },
-    { driver: 'https://github.com/codemix/oriento'}
-  ]  
+// no version thru API but we connect now anyway 
+// to make sure everything is ready before giving back
+// a hardwired version obtained from orientdb console
+var getEngineVersion = function () {
+  // no version in API so using a manually maintained - by you! - hardcoded value.
+  return '2.0-rc2';  
+};
+
+var getDriverVersion = function() {
+  // don't see version in the npm_module 
+      return 'get the oriento package version somewhere';
+};
+
+var store = {
+    engine: { 
+      project: 'OrientDb',
+      version: undefined,
+      getEngineVersion: getEngineVersion
+    },    
+    driver: {
+      project: 'oriento',
+      version: undefined,
+      getDriverVersion: getDriverVersion
+    },   
+    options: options,
+    query: {
+      read: read,
+      log: insert,
+      upsert: upsert,
+      remove: remove,
+      upsertUrData: upsertUrData,
+      readUrData: readUrData
+    },
+    docs: {
+      engine: 'http://orientdb.com/docs/last/index.html',
+      driver: 'https://github.com/codemix/oriento'
+    }, 
+    source: [  
+      { engine: 'https://github.com/orientechnologies/orientdb' },
+      { driver: 'https://github.com/codemix/oriento'}
+    ]  
 }; 
+
+module.exports = exports = store;

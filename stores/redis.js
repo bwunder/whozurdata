@@ -1,25 +1,20 @@
 var name = require('path').basename(module.filename, '.js');
-var descr = ['This is the collection of JSON objects in node server\'s process space.',
-             'The definitions come from javascript modules required by server.js',
-             'html npm help also in local npm installations: cmd "npm help npm"'];
+// dependencies
 
-var util = require('util');
-var fs = require('fs');
-
+// wrangler's mangles
 var read = function (urData) {
   try {
     var result= [];                                      
     return result; 
   }
   catch (e) {
-    throw("read","names", names, "keys", keys, "error", e);
-    return;  
+    throw("read","names", urData.names, "keys", urData.keys, "error", e);
   }
 };
 
 var insert = function (urData) {   
   try {
-    for (i in urData.stores) {
+    for (var i in urData.stores) {
       if (1==2) {
         throw ['duplicate name', urData.stores[i].name].join(":"); 
       }      
@@ -28,7 +23,6 @@ var insert = function (urData) {
   }
   catch (e) {
     throw ("insert", "names", Object.keys(urData.stores[i].name), "error", e);
-    return;  
   }
 };
 
@@ -36,8 +30,9 @@ var update = function (urData) {
   try {
     var action = 'no-op'; 
     for (var name in urData.request.query.names) {
-      for (var key in urData.stores[urData.storeNames.indexOf(name)]) {                                 
-      }  
+      Object.keys(urData.stores).forEach( function(key) {
+        
+      });
     }  
     return action; 
   }
@@ -70,28 +65,27 @@ var upsertUrData = function () {
   return '?';  
 };
 
-var getVersion = function () {
-  return '?';  
+var getEngineVersion = function () {
+  return 'TODO';  
 };
 
-var dvrVersion = function () {
-  return '??';  
+var getDriverVersion = function () {
+  return 'ALSO';  
 };
 
-module.exports= {
-  name: name,
-  moduleId: module.id,
-  store: {
+var store = {
+  engine: {
     project: 'redis',
     version: undefined,
-    setVersion: getVersion
+    getEngineVersion: getEngineVersion
   },
   driver: {
-    project: 'node',
-    version: dvrVersion()
+    project: 'redis',
+    version: undefined,
+    getDriverVersion: getDriverVersion
   },
   options: {},
-  queries: {
+  query: {
     read: read,
     log: insert,
     upsert: upsert,
@@ -100,11 +94,13 @@ module.exports= {
     readUrData: readUrData
   },
   docs: {
-    store: 'http://redis.org/',
+    engine: 'http://redis.org/',
     driver: 'http://nodejs.org/',
   },
   source: [
-    { store: 'http://?' },
+    { engine: 'https://github.com/antirez/redis/' },
     { driver: 'https://github.com/joyent/node' },
   ]
-} 
+}; 
+
+module.exports = exports = store;

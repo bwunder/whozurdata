@@ -1,6 +1,44 @@
-form#chatform(method="GET", action="/")
+- var whozSource, driverSource, engineSource, npmLink 
+if urData.stores[urData.db].driver.project==='node.js'
+    - npmLink= "https://www.npmjs.com/package/npm"
+else
+    - npmLink= "https://www.npmjs.com/package/" + urData.stores[urData.db].driver.project
+for link in urData.stores[urData.db].source
+    if link.driver
+        - driverSource= link.driver
+    if link.engine
+        - engineSource= link.engine
+div.view(name="store")
     fieldset 
-        legend data store
-        select#db(name="db", onchange="submit()", title="source of urData", required)
-            datalist.dbChoices
-
+        legend
+            form#db-form(method="GET" action="/store")
+                label: button.toggleView(type="button" onfocus="window.location.href='/'") whozUrData &nbsp;
+                    select#db(name="db" onchange="submit()" title="primary secondary storage" accesskey="U")
+                       each store in Object.keys(urData.stores) 
+                            if store===urData.db
+                                option(selected)= store
+                            else
+                                option= store
+        span.nowrap
+            span.small engine: 
+            - var dbLink= urData.stores[urData.db].docs.engine
+            span.center
+                button.doc(type="button" onfocus="window.location.href='#{dbLink}'"): b= urData.stores[urData.db].engine.project 
+            span.right 
+                button.source(type="button" onfocus="window.location.href='#{engineSource}'")= urData.stores[urData.db].engine.version             
+        span.nowrap
+            - var driverLink= urData.stores[urData.db].docs.driver
+            span.small 
+                a(href="#{npmLink}") driver
+                span : 
+            span.center
+                button.doc(type="button" onfocus="window.location.href='#{driverLink}'")= urData.stores[urData.db].driver.project
+            span.right 
+                button.source(type="button" onfocus="window.location.href='#{driverSource}'")= urData.stores[urData.db].driver.version             
+span#hotwire 
+    span
+        button.source(name="cur" onfocus="submit()" form="files-form" value="/license.txt") 
+            span.small license (#{urData.license})
+    span.right 
+        button.source(type="button" onclick="window.location.href='https://github.com/bwunder/whozurdata'") 
+            span.small version #{urData.version}

@@ -1,0 +1,61 @@
+mixin toggle(view, helpText)
+    legend 
+        span
+            button.toggleView(type="button" onclick="toggle('#{view}')" title="#{helpText}") &plusmn;
+            span.right &nbsp;#{view}
+
+mixin toTextarea(charData)
+    textarea(onfocus="expand(this)" onblur="collapse(this)" readonly)= charData
+
+mixin toObjectarea(JSONData)
+    - console.log('toObjectarea JSONData', JSONData) 
+    code(onfocus="expand(this)" onblur="collapse(this)" readonly)= JSONData
+
+mixin toCell(value)
+    case typeof value  
+        when 'undefined'
+            span nothing requested
+        when 'number'
+            span= value.toString()
+        when 'boolean'
+            span= value.toString()
+        when 'function'
+                +toTextarea(value.toString())
+        when 'object'
+                +toTextarea(JSON.stringify(value, null, 2))
+        default
+            if (value.length > 50)
+                +toTextarea(value)
+            else
+                span= value
+
+mixin toMarkup(property)
+    if typeof property!='object'
+        //- can overflow the stack if unwound in toMarkup()
+        +toCell(property)
+    else
+        table.property
+            if Array.isArray(property)
+                each value, index in property
+                    tr 
+                        td.top
+                            span.blue= index===0? "[": "" 
+                        td
+                            +toCell(value)
+                        td.bottom    
+                            span.blue= property.length - 1===index? " ]": " ,"
+            else
+                - var keys= Object.keys(property)
+                each value, key in property
+                    tr
+                        td.top
+                            span.blue= keys[0]===key? "{": " " 
+                        td.top
+                            span.small= key 
+                        td.top
+                            span.blue= ":"
+                        td                
+                            +toCell(value)
+                        td.bottom
+                            span.blue= keys[keys.length - 1]===key? " }": " ,"     
+
