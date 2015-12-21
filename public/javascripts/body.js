@@ -1,3 +1,4 @@
+// 
 function toggle(view) {
   var div= document.getElementsByName(view)[0];
   if (!div.style.height) {
@@ -24,7 +25,7 @@ function collapse(txtArea) {
   txtArea.rows = undefined;
 }
 
-// enter is ambiguous so is set off for the page - works in soft wrapping textarea
+// enter context ambiguous - set off for the page - will still work as input into soft wrapping textareas
 function stopRKey(evt) { 
   var evt = (evt) ? evt : ((event) ? event : null); 
   var node = (evt.target) ? evt.target : ((evt.srcElement) ? evt.srcElement : null); 

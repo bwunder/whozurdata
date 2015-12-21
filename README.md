@@ -1,30 +1,38 @@
-whozurdata v0.0.4
+whozurdata v0.0.5
 ===
+interstitial multi-model run-time data connecta-repli-grator middleware
 
 ---
-* interstitial data storage middleware 
-* NOSE stack (Node, Open Data, Socket.io, Express) 
 * urData object - config and stored query meta-object  
 
-NOSE
+NOSE (Node, Open Data, Socket.io, Express)
 + seemless interation of any data targets
-+ requires no 
-+ superset of LAMP and MEAN stacks
-+ supports ACID and BASE concurrency models 
-* interstitial run-time data repli-grator
++ superset for LAMP, MEAN and other application stacks
++ atomic partition tolerance for support of tight ACID transactions and eventual concurrency BASE models
 + integrate any data store 
+* JSON 
 * conformed javascript named query API 
 
 "The bedrock of every data rich user experience! I dig it!" - Fred [local brontosaurus operator]   
-"Its Uge, just install it and it will be tremendous!" - Don [very rich guy]
----
+
+"Its Uge, just install it and I will be phenominal!" - Donald [orange headed dunce]
+
 
 ### What's it do?
-
-
+Concurrently connect all necessary stored data to any application through one node server
+Automate migrations, replication and fail-over between storage models 
 
 ### How's it work?
+The organization's designated data miester(s) fix connection configuration, support information and the collection 
+of query functions to be used specific to each data storage engine to be used into member objects of a common namespace.
+A data miester group - as opposed to a single person - helps to avoid the tendency to rescope established design goals 
+on the fly and to keep the application development process moving along when . Functions needed to support replication and backups are defined 
+by the data miester(s). Application query function authorship and other criteria are best defined in the context of the 
+organization. 
 
+where the queries must be executed
+to a member object 
+in a namespace of othe    
 
 
 

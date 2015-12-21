@@ -5,6 +5,8 @@ var fs = require('fs'),
     os = require('os'),
     path = require('path'),
     checksum = require('checksum'),
+    crypto = require('crypto'),
+    util = require('util'),
     db = 'cache', // must always be among interfaces imported in initStoreNames()
     license = 'MIT',
     version = '0.0.4',
@@ -27,9 +29,74 @@ var fs = require('fs'),
   anarchy         - (default) local snapshot/commit, no distribution or syncronization services
 */
 
-var checksum = function(obj) {
-// TODO! - always excludes checksum keys and prefix with date for date order 
-  return checksum(obj);      
+var recipher = function(obj) {
+  var lastChecksum, 
+      lastHash, 
+      lastSignature,
+      temp = {},
+      _hash = crypto.createHash('SHA256'),
+      _privatekey = fs.readFileSync('signkey.pem'),
+      _signature = crypto.createSign('RSA-SHA256');
+  var pkey = _privatekey.toString('ascii');
+  Object.keys(obj).forEach( function(key) {
+    switch (key) {
+      case '_checksum': 
+        lastChecksum = obj[key];
+        break; 
+      case '_hash': 
+        lastHash = obj[key]; 
+        break;
+      case '_signature': 
+        lastSignature = obj[key]; 
+        break;
+      default: 
+        temp[key] = obj[key];
+        _hash.update(util.inspect(obj[key]), 'utf8');
+        _signature.update(util.inspect(obj[key]));
+    }
+  }); 
+  obj._checksum = checksum(util.inspect(temp));
+  obj._hash = _hash.digest('hex');
+  obj._signature = _signature.sign({key:_privatekey, passphrase: 'test'}, 'hex');
+  if (  (!lastChecksum && !lastHash && !lastSignature)
+      ||(    (lastChecksum && obj._checksum!=lastChecksum)  
+          && (lastHash && obj._hash!=lastHash) 
+          && (lastSignature && obj._signature!=lastSignature))) {
+      return true;
+    } else {
+      console.warn('recipher didn\'t go so good \n',
+                   'all new \t', (!lastChecksum && !lastHash && !lastSignature),
+                   '\nchecksums', (!lastChecksum || obj._checksum!=lastChecksum)?'DO NOT':'', 'match \t\n',
+                   'last\t', lastChecksum, '\n now\t', obj._checksum,
+                   '\nhashes', (lastHash && obj._hash!=lastHash)?'':'DO NOT', 'match \t\n',
+                   'last\t', lastHash, '\n now\t', obj._hash,
+                   '\nsignatures', (lastSignature && obj._signature!=lastSignature)?'':'DO NOT', 'match \t\n', 
+                   'last\t', lastSignature, '\n now\t', obj._signature);
+      return false;
+    }
+};
+
+var checkCiphers = function(urData) {
+  if (!recipher(urData)) {
+    urData.stores.forEach(function(store){
+      if (!recipher(store)) {
+        console.log('checksum anomolie store: %s', Object.keys(store)[0]);
+      }
+    });   
+    console.warn('namespace checksum anomolie');
+    return false;
+  } else {
+    return true;
+  }
+};
+
+// encryption/decryption of value for each top level key
+// encrypt({test: "this text will be obfuscated"})
+var encrypt = function(obj) {
+}
+
+var decrypt = function(obj) {
+  
 }
 
 // urData object schema with one properly typed but empty fixed store schema in the stores array
@@ -41,7 +108,7 @@ var verifySchema = function() {
       expectedDomainKeys = ['engine','driver','options','query','docs','source'],
       expectedEngineKeys = ['project','version','getEngineVersion'],
       expectedDriverKeys = ['project','version', 'getDriverVersion'],
-      expectedQueryKeys  = ['read','log', 'upsert', 'remove', 'readUrData', 'upsertUrData'],
+      expectedQueryKeys  = ['read','insert', 'update', 'upsert', 'remove', 'readUrData', 'upsertUrData'],
       expectedDocKeys    = ['engine','driver'],
       expectedSourceKeys = ['engine','driver'];
   var actualSourceKeys; 
@@ -129,7 +196,8 @@ var load = function () {
   if (urData.db === 'cache') {
     importStores();
   }
-  else { // overload object from urData.db as created at startup with data from this db
+  else { 
+    // overwrite namespace using data from the db
     urData = urData[urData.db].query.readUrData();     
     console.log('db', urData.db, 'load');
   }
@@ -138,7 +206,6 @@ var load = function () {
   return urData;
 };
 
-// give it an id else include the current time in the snapshot name
 var shoot = function(snapshotId) {
   //http://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
    var hashCode = function() {
@@ -197,7 +264,7 @@ var urData =  {
   config: config,                       // node server
   stores: {},                           // secondary storage cluster
   methods: {
-    checksum: checksum,                 // just a wrapper  
+    recipher: recipher,                 // compute checksum, has and signature  
     verifySchema: verifySchema,         // is interfaces's semi-fixed structural integrity intact
     getServerIPV4s: getServerIPV4s,     // local IPs where node server is listening for web requests
     getPackageVersion: getPackageVersion, 
@@ -212,7 +279,7 @@ var urData =  {
   },
   license: license,                     // full text in license.txt
   version: version,                     // code base version - cache       
-};                                      // a checksum token  
+};                                        
 
 // http://stackoverflow.com/questions/8667070/javascript-regular-expression-to-validate-url
 function ValidURL(str) {
@@ -259,64 +326,64 @@ function ValidURL(str) {
       };
 */
 
-
 function openStore(name, store) {
   if (typeof store === 'object') {
-    try {
-      // other attribs will not be considered here but will be added to the buffer object 
-      if (typeof store.engine.project != 'string') {
-        throw 'engine failure';
-      }
-      if (typeof store.driver.project != 'string') {
-        throw 'driver error';
-      }
-      if (typeof store.options != 'object') {
-        throw 'bad options'
-      }
-      if (typeof store.query.read != 'function' || 
-          typeof store.query.log != 'function' || 
-          typeof store.query.upsert != 'function' || 
-          typeof store.query.remove != 'function' || 
-          typeof store.query.upsertUrData != 'function' || 
-          typeof store.query.readUrData != 'function') {
-        throw 'query anomalie';
-      }
-      for (var doc in store.docs) {
-        if (!ValidURL(store.docs[doc])) {
-          throw 'missing document';
-        }
-      }
-      for (var i = 0; i < store.source.length; ++i) {
-        if (!ValidURL(store.source[i][Object.keys(store.source[i])[0]])) {
-          if (Object.keys(store.source[i])[0] === 'engine' || Object.keys(store.source[i])[0] == 'driver') {
-            throw 'bogus repo: ' + Object.keys(store.source[i])[0];
-          }
-          else {
-            console.warn(name + ': source link misformed: ' + Object.keys(store.source[i])[0]);
-          }
-        }
-      }  
-      store.engine.version = store.engine.getEngineVersion();
-      store.driver.version = getPackageVersion(store.driver.project);
-      urData.stores[name] = store;
+    // other attribs will not be considered here but will be added to the buffer object 
+    if (typeof store.engine.project != 'string') {
+      throw 'engine failure';
     }
-    catch (e) {
-      throw(e);
+    if (typeof store.driver.project != 'string') {
+      throw 'driver error';
+    }
+    if (typeof store.options != 'object') {
+      throw 'bad options';
+    }
+    if (typeof store.query.read != 'function' ||
+        typeof store.query.insert != 'function' ||
+        typeof store.query.update != 'function' ||
+        typeof store.query.upsert != 'function' ||
+        typeof store.query.remove != 'function' ||
+        typeof store.query.upsertUrData != 'function' ||
+        typeof store.query.readUrData != 'function') {
+      throw 'query anomalie';
+    }
+    for (var doc in store.docs) {
+      if (!ValidURL(store.docs[doc])) {
+        throw 'missing document';
+      }
+    }
+    for (var i = 0; i < store.source.length; ++i) {
+      if (!ValidURL(store.source[i][Object.keys(store.source[i])[0]])) {
+        if (Object.keys(store.source[i])[0] === 'engine' || Object.keys(store.source[i])[0] == 'driver') {
+          throw 'bogus repo: ' + Object.keys(store.source[i])[0];
+        }
+        else {
+          console.warn(name + ': source link misformed: ' + Object.keys(store.source[i])[0]);
+        }
+      }
+    }
+    store.engine.version = store.engine.getEngineVersion();
+    store.driver.version = getPackageVersion(store.driver.project);
+    if (recipher(store)) {
+      urData.stores[name] = store;
+      return true;
+    } else {
+      return false;
     }
   }
-} 
+}
 
 var importStores = function() {
-  var name, iface, stores = [];
   fs.readdirSync(__dirname+'/stores').forEach(function (file) {
     if (path.extname(file)==='.js') {
-      name = path.basename(file, '.js');
-      iface = require('./stores/' + name);
-      openStore(name, iface);
-      stores.push(name);
+      var name = path.basename(file, '.js');
+      if (!openStore(name, require('./stores/' + name))) {
+        console.error('store %s did not open', name);
+      }
     }
   });
+  return recipher(urData);
 };
 
-module.exports = exports = load();  
+module.exports = exports = load();
 

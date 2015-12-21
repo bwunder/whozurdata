@@ -75,7 +75,8 @@ var store = {
   },
   query: {
     read: read,
-    log: insert,
+    insert: insert,
+    update: update,
     upsert: upsert,
     remove: remove,
     upsertUrData: upsertUrData,

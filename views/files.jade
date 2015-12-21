@@ -1,7 +1,5 @@
-- console.log('files.jade cur', cur)
-- console.log('files.jade cwd', cwd)
 div.view(name="files")
-    form#files-form(method="GET" action="/files")
+    form#files-form(method="GET" action="/files/")
         fieldset 
             +toggle("files", "Browse the node server\'s file system")
             span.small cwd:

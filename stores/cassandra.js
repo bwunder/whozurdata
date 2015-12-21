@@ -95,6 +95,21 @@ function updateOptions (store) {
                          callback);
 }
 
+function update (store) {
+  return client.execute(["UPDATE stores",
+                           "SET docs = ?, driver = ?, filename = ?,",
+                             "options = ?, query = ?, source = ?",
+                           "WHERE name = ?"].join(" "),
+                         [{value: store.docs, hint: 'map'} ,
+                           {value: store.driver, hint: 'text'},
+                           {value: store.filename, hint: 'text'},
+                           {value: store.options, hint: 'map'},
+                           {value: store.query, hint: 'map'},
+                           {value: store.source, hint: 'map'},
+                           {value: store.name}],
+                         callback);
+}
+
 function upsert (store) {
   return client.execute(["UPDATE stores",
                            "SET docs = ?, driver = ?, filename = ?,",
@@ -110,10 +125,19 @@ function upsert (store) {
                          callback);
 }
 
-function del (store) {
+function remove (store) {
   return client.execute("DELETE FROM stores WHERE name = ?",
                          [store.name],
                          callback);
+}
+
+var readUrData = function(attributes) {
+  return "the complete object is is loaded as stored at this storage engine"; 
+}
+
+var upsertUrData = function(attributes) {
+console.log('upsert stores urData attributes to this storage engine');  
+  return; 
 }
 
 var getEngineVersion = function () {
@@ -141,9 +165,10 @@ var store = {
   },
   query: {
     read: read,  
-    log: insert,
+    insert: insert,
+    update: update,
     upsert: upsert,
-    remove: del,
+    remove: remove,
     upsertUrData: upsertUrData,
     readUrData: readUrData 
   },

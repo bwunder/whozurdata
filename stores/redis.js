@@ -1,7 +1,5 @@
 var name = require('path').basename(module.filename, '.js');
-// dependencies
 
-// wrangler's mangles
 var read = function (urData) {
   try {
     var result= [];                                      
@@ -87,7 +85,8 @@ var store = {
   options: {},
   query: {
     read: read,
-    log: insert,
+    insert: insert,
+    update: update,
     upsert: upsert,
     remove: remove,
     upsertUrData: upsertUrData,

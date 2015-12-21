@@ -9,8 +9,8 @@ var debug = require('debug')('*');
  * HTTPS server certificate options
  * see prestart.sh
  */
-var options = { key: fs.readFileSync('newkey.pem'), 
-                cert: fs.readFileSync('newcert.pem'),
+var options = { key: fs.readFileSync('sslkey.pem'), 
+                cert: fs.readFileSync('sslcert.pem'),
                 passphrase: 'test'};
 
 /**

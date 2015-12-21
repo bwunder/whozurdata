@@ -6,6 +6,8 @@ var express = require('express'),
     fs = require('fs'),
     root = process.cwd(),  // NEVER send root to browser
     result = {}; 
+
+
 router.get('*', function(req, res, next) {
   var urlParse = url.parse(decodeURI(req.url)||'/', true);
   result = {urData: module.parent.exports.settings.data,
@@ -19,9 +21,11 @@ router.get('*', function(req, res, next) {
                        path: urlParse.pathname,
                        query: urlParse.query },
             reply: []};
-  result.cwd = fs.statSync(path.join(root, result.cur.dir, result.cur.base)).isFile()? result.cur.dir: path.join(result.cur.dir, result.cur.base);
+  if (result.urData.methods.recipher(result.urData)) {
+    result.cwd = fs.statSync(path.join(root, result.cur.dir, result.cur.base)).isFile()? result.cur.dir: path.join(result.cur.dir, result.cur.base);
     var members = fs.readdirSync(path.join(root, result.cwd));
     members.forEach(function (member) {
+console.log('member',member);
       if (fs.statSync(path.join(root, result.cwd, member)).isDirectory()) {
         if (['.c9', '.git', 'node_modules', 'demoCA'].indexOf(member)===-1) {
             result.dirs.push(member);
@@ -33,6 +37,7 @@ router.get('*', function(req, res, next) {
         }
       }
     });
+  } 
   next();
 });
 

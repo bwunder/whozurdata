@@ -2,11 +2,22 @@
 #openssl req -x509 -newkey rsa:1024 -keyout key.pem -out cert.pem -passin pass:keyPass -passout pass:test -days 1 -batch
 sudo chmod u+x scripts/newCA.sh
 sudo chmod u+x scripts/newCert.sh
+sudo chmod u+x scripts/backup.sh
 if [ ! -f ../demoCA/private/cakey.pem ]
 then
     sudo scripts/newCA.sh
 fi    
-    sudo scripts/newCert.sh
+sudo scripts/newCert.sh
+sudo chmod u+x scripts/newCA.sh
+sudo mv newcert.pem sslcert.pem 
+sudo mv newkey.pem sslkey.pem 
+sudo scripts/newCert.sh
+sudo mv newcert.pem signcert.pem 
+sudo mv newkey.pem signkey.pem 
+sudo scripts/newCert.sh
+sudo mv newcert.pem datacert.pem 
+sudo mv newkey.pem datakey.pem 
+
 #ls -gG *.pem
 #browserify body.js > bundle.js
 #ls -gG bundle.js

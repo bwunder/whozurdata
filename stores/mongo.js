@@ -164,7 +164,8 @@ var store = {
   options: options,
   query: {
     read: read,
-    log: insert,  
+    insert: insert,  
+    update: update,  
     upsert: upsert,  
     remove: remove,
     upsertUrData: upsertUrData,

@@ -11,7 +11,8 @@ for link in urData.stores[urData.db].source
 div.view(name="store")
     fieldset 
         legend
-            form#db-form(method="GET" action="/store")
+            form#db-form(method="GET" action="/store?cur=#{cwd}")
+                input(name="cur" type="hidden" value="#{cwd}")
                 label: button.toggleView(type="button" onfocus="window.location.href='/'") whozUrData &nbsp;
                     select#db(name="db" onchange="submit()" title="primary secondary storage" accesskey="U")
                        each store in Object.keys(urData.stores) 

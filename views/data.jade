@@ -1,7 +1,8 @@
 div.view(name="data")
-    form#query-form(method="GET", action="/query")
+    form#query-form(method="GET", action="/query?cur=#{cwd}")
         fieldset 
             +toggle("data", ["Run queries stored at node server targeting the data stored in urData.stores.", urData.db ,".engine"].join(" "))
+            input(name="cur" type="hidden" value="#{cwd}")
             select#proc(name="proc" required)
                 option(value="" selected disabled) query function
                 for query in Object.keys(urData.stores[urData.db].query)

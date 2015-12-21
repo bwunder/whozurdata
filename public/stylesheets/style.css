@@ -81,6 +81,9 @@ textarea {
     max-width: 100%;
     height: 100%;
 }
+#store {
+    height: "unset";
+}
 .blue {
     color: #0000FF;
 }
@@ -148,7 +151,6 @@ textarea {
     min-width: -moz-fit-content;
     min-width: -webkit-fit-content;
     line-height: 1.4em;
-    
 }
 .view>fieldset, .view>form, .view>form>fieldset  {
     display: flex;

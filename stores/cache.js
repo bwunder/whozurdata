@@ -1,3 +1,4 @@
+// checksum works from urData. this may too?
 var name = require('path').basename(module.filename, '.js');
 
 var read = function (names, keys) {
@@ -5,9 +6,9 @@ console.log(names, keys);
   var reply= [];
   names.forEach( function(name) {
     var store = module.parent.exports.stores[name];
-    var row = {};
+    var row = JSON.parse('{"' + name + '":{}}');
     keys.forEach(function(key) {
-      row[key] = store[key];
+      row[name][key] = store[key];
     });
     reply.push(row);
   });
@@ -17,14 +18,17 @@ console.log(names, keys);
 //TODO?  commit() upserts the buffered urData object into urData.db (generates version token, no-op returns prev token, collions mediated)
 //TODO?  concur() commits the buffered urData object into every other store in collection (uses single version token of the commit)
 
-// cache inserts create a store module file
-var insert = function (store) {
+// cache inserts creates a bootstrap module file from the a store in urData namespace stores collection 
+var insert = function (name) {
   console.log('insert store %s here', store);  
 };
 
 // cache updates are store module file edits
 var update = function (names, keys) {
   console.log('update keys %s in stores %s here', keys, names);  
+  names.forEach( function(name) {
+
+  });
 };
 
 // cache updates are store module file edits
@@ -44,7 +48,15 @@ var remove = function (names) {
   console.log('move module files for store(s) %s to deleted folder', names)
 };
 
-// only provide if engine instance is available  
+var readUrData = function() {
+  return "the file for edit? what do I need? I need to know what editor I'm using..." ; 
+}
+
+var upsertUrData = function() {
+console.log('upsert urData attributes in file with  in cache now');  
+  return; 
+}
+
 var getEngineVersion = function () {
   return process.versions.v8;
 };
@@ -52,15 +64,6 @@ var getEngineVersion = function () {
 var getDriverVersion = function () {
   return process.version;
 };
-
-var readUrData = function() {
-  return module.parent.exports
-}
-
-var upsertUrData = function() {
-console.log('upsert urData attributes in cache now');  
-  return; 
-}
 
 // every store must minimally implement this schema
 // any product can be used by multiple stores 
@@ -82,9 +85,10 @@ var store = {
   options: {},
   query: {
     read: read,
-    log: insert,
-    upsert: upsert,
-    remove: remove,
+    insert: insert,  // add new key pair(s)
+    update: update,  // modify existing key(s)
+    upsert: upsert,  // wraps insert else update
+    remove: remove,  // memory cleared and artifacts moved to /deleted
     upsertUrData: upsertUrData,
     readUrData: readUrData
   },
